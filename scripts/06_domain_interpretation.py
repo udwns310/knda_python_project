@@ -20,16 +20,24 @@ import matplotlib.pyplot as plt
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
 from common import DATA, OUT_METRICS, OUT_FIG
 
-# NASA C-MAPSS 데이터 설명서 기준 센서 이름 (물리적 의미) — 공개된 데이터 설명 문서에
-# 나온 표준 명칭입니다. 발표 때 "s4가 뭔데요?"라는 질문에 바로 답할 수 있게 정리.
+# C-MAPSS 센서 21개의 물리적 의미 (원자료 기호 → 우리말). 발표 때 "s4가 뭔데요?"라는
+# 질문에 바로 답할 수 있게 정리했습니다.
+# 출처: Saxena, A. et al., "Damage Propagation Modeling for Aircraft Engine Run-to-Failure
+#       Simulation", PHM 2008, Table 2 (C-MAPSS 출력 변수 목록). 데이터 파일의 센서 열 순서와
+#       이 표의 순서가 같습니다.
+# ※ 2026-09-29 수정: 처음 버전은 s15부터 한 칸씩 밀려 있었습니다(예: s15를 "연료 유량비"로
+#   적었지만 실제로는 바이패스비 BPR). 이 표를 쓰는 06번 그림·해석과 08번 대시보드 라벨이
+#   모두 이 값을 따라갑니다.
 SENSOR_MEANING = {
-    "s1": "Fan inlet 온도", "s2": "LPC(저압압축기) outlet 온도", "s3": "HPC(고압압축기) outlet 온도",
-    "s4": "LPT(저압터빈) outlet 온도", "s5": "Fan inlet 압력", "s6": "bypass-duct 압력",
-    "s7": "HPC outlet 압력", "s8": "물리적 팬 속도(N1)", "s9": "물리적 코어 속도(N2)",
-    "s10": "engine pressure ratio", "s11": "HPC outlet 정압", "s12": "연료-압력 비율",
-    "s13": "보정된 팬 속도", "s14": "보정된 코어 속도", "s15": "연료 유량비",
-    "s16": "bleed enthalpy", "s17": "demanded 팬 속도", "s18": "demanded 보정 팬 속도",
-    "s19": "HPT(고압터빈) coolant bleed", "s20": "LPT coolant bleed", "s21": "LPT coolant bleed(2)",
+    "s1": "T2 · Fan inlet 온도", "s2": "T24 · LPC(저압압축기) outlet 온도",
+    "s3": "T30 · HPC(고압압축기) outlet 온도", "s4": "T50 · LPT(저압터빈) outlet 온도",
+    "s5": "P2 · Fan inlet 압력", "s6": "P15 · bypass-duct 전압력", "s7": "P30 · HPC outlet 전압력",
+    "s8": "Nf · 물리적 팬 속도", "s9": "Nc · 물리적 코어 속도", "s10": "epr · 엔진 압력비(P50/P2)",
+    "s11": "Ps30 · HPC outlet 정압", "s12": "phi · 연료 유량/Ps30 비",
+    "s13": "NRf · 보정 팬 속도", "s14": "NRc · 보정 코어 속도", "s15": "BPR · 바이패스비",
+    "s16": "farB · 연소기 연료-공기비", "s17": "htBleed · 블리드 엔탈피",
+    "s18": "Nf_dmd · 요구 팬 속도", "s19": "PCNfR_dmd · 요구 보정 팬 속도",
+    "s20": "W31 · HPT(고압터빈) 냉각 블리드 유량", "s21": "W32 · LPT(저압터빈) 냉각 블리드 유량",
 }
 
 # ---------------------------------------------------------------------------

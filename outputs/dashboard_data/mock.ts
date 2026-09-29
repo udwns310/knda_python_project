@@ -14,7 +14,7 @@ export const statusLabel: Record<Status, string> = {
 }
 
 export const dataMeta = {
-  "generatedAt": "2026-09-29T11:33:25",
+  "generatedAt": "2026-09-29T11:36:46",
   "dataset": "C-MAPSS FD001",
   "testEngines": 100,
   "selectedEngines": [
@@ -2206,23 +2206,23 @@ export const classifierMetrics = {
 /** RF 피처 중요도 상위 5개 센서(그룹 합산) */
 export const featureImportance = [
   {
-    "label": "LPT outlet 온도 (s4)",
+    "label": "T50 · LPT outlet 온도 (s4)",
     "value": 0.58
   },
   {
-    "label": "물리적 코어 속도(N2) (s9)",
+    "label": "Nc · 물리적 코어 속도 (s9)",
     "value": 0.086
   },
   {
-    "label": "HPC outlet 온도 (s3)",
+    "label": "T30 · HPC outlet 온도 (s3)",
     "value": 0.061
   },
   {
-    "label": "HPC outlet 정압 (s11)",
+    "label": "Ps30 · HPC outlet 정압 (s11)",
     "value": 0.049
   },
   {
-    "label": "LPT coolant bleed(2) (s21)",
+    "label": "W32 · LPT 냉각 블리드 유량 (s21)",
     "value": 0.031
   }
 ]
