@@ -26,7 +26,7 @@ MAE/RMSE는 낮을수록 좋음 (단위: cycle). NASA_score도 낮을수록 좋�
 | `last_observed_cycle` | 지금까지 관측된 마지막 사이클 번호 |
 | `predicted_RUL` | LSTM 모델이 예측한 잔존수명 (cycle) |
 | `true_RUL_for_validation_only` | **실제 정답값** — 이 프로젝트가 검증용으로 갖고 있는 C-MAPSS 데이터의 정답. **실무 배포 시에는 이 필드가 없다고 가정하고 UI를 설계해야 합니다** (실제 설비는 정답을 모름). 지금은 "모델이 얼마나 잘 맞았는지" 보여주는 데모/검증 용도로만 포함했습니다. |
-| `risk_level` | `RED`(<20 cycle, 즉시 정비 필요) / `YELLOW`(20~60 cycle, 정비 계획 필요) / `GREEN`(>60 cycle, 정상). 임계값 근거는 `docs/DESIGN_DECISIONS.md` 참고 |
+| `risk_level` | `RED`(≤30 cycle, 즉시 정비 필요) / `YELLOW`(30 초과~60 미만, 정비 계획 필요) / `GREEN`(≥60 cycle, 정상). 임계값 근거는 `docs/DESIGN_DECISIONS.md` 참고 |
 
 ## 3. `engine_timeseries/{unit}.json`
 엔진 하나를 클릭했을 때 상세 그래프를 그리기 위한 데이터. 파일당 엔진 1개:
