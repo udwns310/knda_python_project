@@ -2,13 +2,13 @@
   "danger_case": {
     "unit": 79,
     "RUL_true": 63.0,
-    "RUL_pred": 93.043365,
-    "residual": 30.043364999999994
+    "RUL_pred": 91.53888,
+    "residual": 28.538880000000006
   },
   "conservative_case": {
     "unit": 12,
     "RUL_true": 124.0,
-    "RUL_pred": 81.77488,
-    "residual": -42.225120000000004
+    "RUL_pred": 81.27044,
+    "residual": -42.729560000000006
   }
 }

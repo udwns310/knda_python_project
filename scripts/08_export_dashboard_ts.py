@@ -48,14 +48,21 @@ from common import (
 # test 엔진 100대를 다 넣지 않고 발표 데모용으로 9대를 골랐습니다. 규칙으로 뽑은 게
 # 아니라 등급별로 골고루 보이도록 사람이 고른 목록입니다:
 #   위험(RED) 5대  : 예측 RUL이 가장 낮은 4대(34, 42, 81, 76) + 대표 엔진 37
-#   주의(YELLOW) 2대: 56, 18 (주의 등급 하위권, 위험 경계에 가까운 엔진)
+#   주의(YELLOW) 2대: 91, 62 (주의 등급 중 위험 경계(30)에 가장 가까운 엔진)
 #   정상(GREEN) 2대 : 43(정상 중 가장 낮음 = 곧 주의로 넘어갈 엔진), 47(가장 여유 있음)
-# 모델을 다시 학습해서 등급이 바뀌면 이 목록도 다시 골라야 합니다 (아래에서 등급이
-# 예상과 다르면 경고를 출력합니다).
-SELECTED_ENGINES = [34, 42, 81, 76, 37, 56, 18, 43, 47]
+# 2026-09-29 위험 기준을 20 → 30으로 바꾸면서 예전 주의 엔진(56, 18)이 위험으로 넘어가
+# 주의 2대를 다시 골랐습니다. 모델을 다시 학습해서 등급이 바뀌면 이 목록도 다시 골라야
+# 합니다 (아래에서 등급이 예상과 다르면 멈추고 알려줍니다).
+SELECTED_ENGINES = [34, 42, 81, 76, 37, 91, 62, 43, 47]
+EXPECTED_LEVELS = {"RED": 5, "YELLOW": 2, "GREEN": 2}
 
-# 메인 차트(모니터링 화면)에 보여줄 "대표 엔진"의 마지막 몇 사이클을 보여줄지.
-# 기존 대시보드의 시간 슬라이더가 0~24 (25칸) 구조라 그대로 25로 맞췄습니다.
+# 메인 차트(모니터링 화면)에 보여줄 "대표 엔진"과 마지막 몇 사이클을 보여줄지.
+# 대표 엔진 조건: 위험(RED) 엔진 중 마지막 25사이클 창 "안에서" 정상→주의→위험 두 번의
+# 임계값 교차가 모두 보이는 엔진 (발표에서 열화 과정을 한 화면에 보여주기 위함).
+# 조건을 만족하는 엔진이 여러 대라, 처음 연동 때부터 써 온 #37을 고정해 발표 자료와
+# 대시보드 화면이 계속 일치하도록 했습니다 (조건을 만족하는지는 아래에서 검사합니다).
+# 창 길이 25는 기존 대시보드의 시간 슬라이더(0~24, 25칸) 구조에 맞춘 값입니다.
+FEATURED_ENGINE = 37
 FEATURED_WINDOW = 25
 
 # ---------------------------------------------------------------------------
@@ -72,8 +79,8 @@ FEATURED_WINDOW = 25
 # 이렇게 하면 신뢰구간·생존곡선·예측값이 모두 같은 근거에서 나오므로 서로 모순되지 않습니다.
 #
 # NEIGHBOR_RADIUS = 10: 너무 좁으면(예: 2) 모이는 사례가 적어 분포가 들쭉날쭉하고,
-#   너무 넓으면(예: 30) RUL 10과 40처럼 전혀 다른 상황이 섞입니다. 10이면 위험 등급
-#   구간(20 cycle) 폭의 절반이라 등급이 섞이지 않으면서 사례가 수백 개 모입니다.
+#   너무 넓으면(예: 30) RUL 10과 40처럼 전혀 다른 상황이 섞입니다. 10이면 위험·주의
+#   등급 구간 폭(각 30 cycle)의 3분의 1이라 등급이 크게 섞이지 않으면서 사례가 수백 개 모입니다.
 # MIN_NEIGHBORS = 30: 반경 안 사례가 30개보다 적으면 가장 가까운 30개를 씁니다
 #   (통계에서 분포 모양을 볼 때 흔히 쓰는 최소 표본 수 관례).
 # 실제 RUL은 125로 자르지 않은 원래 값을 씁니다 (공식 test 정답도 자르지 않은 값이라서).
@@ -226,21 +233,25 @@ for u in SELECTED_ENGINES:
 
 ranking.sort(key=lambda r: r["health"])
 
+levels = summary.loc[SELECTED_ENGINES, "risk_level"].value_counts().to_dict()
+if levels != EXPECTED_LEVELS:
+    raise SystemExit(f"선택한 9대의 등급 분포가 {levels}로 바뀌었습니다 (기대: {EXPECTED_LEVELS}) — "
+                     f"모델이나 기준이 바뀐 것이니 SELECTED_ENGINES를 다시 골라주세요.")
+
 # ---------------------------------------------------------------------------
 # 4. 대표 엔진 (모니터링 화면 메인 차트 + 경보 로그)
 # ---------------------------------------------------------------------------
-# 대표 엔진 선정 규칙: 위험(RED) 엔진 중, 마지막 25사이클 창 "안에서" 정상→주의→위험
-# 두 번의 임계값 교차가 모두 보이는 엔진 (발표에서 열화 과정을 한 화면에 보여주기 위함).
-# 후보가 여러 개면 엔진 번호가 가장 작은 것 (현재 결과: 37, 41, 61 → 37).
-red, yellow = RISK_THRESHOLDS["red_below"], RISK_THRESHOLDS["yellow_below"]
+# 대표 엔진 조건 검사 (맨 위 FEATURED_ENGINE 설명 참고)
+red, yellow = RISK_THRESHOLDS["red_at_or_below"], RISK_THRESHOLDS["yellow_below"]
 candidates = []
 for u in sorted(summary.index[summary["risk_level"] == "RED"]):
     v = load_timeseries(u)["predicted_RUL_curve"][-FEATURED_WINDOW:]
-    if len(v) == FEATURED_WINDOW and v[0] >= yellow and min(v) < red:
+    if len(v) == FEATURED_WINDOW and v[0] >= yellow and min(v) <= red:
         candidates.append(int(u))
-featured = candidates[0]
-if featured not in SELECTED_ENGINES:
-    raise SystemExit(f"대표 엔진 #{featured}이 SELECTED_ENGINES에 없습니다 — 목록을 다시 골라주세요.")
+featured = FEATURED_ENGINE
+if featured not in candidates or featured not in SELECTED_ENGINES:
+    raise SystemExit(f"대표 엔진 #{featured}이 조건을 만족하지 않거나 SELECTED_ENGINES에 없습니다 "
+                     f"(조건 만족 엔진: {candidates}) — FEATURED_ENGINE을 다시 골라주세요.")
 
 ts = load_timeseries(featured)
 cyc = ts["cycles"][-FEATURED_WINDOW:]
@@ -248,7 +259,7 @@ rul = ts["predicted_RUL_curve"][-FEATURED_WINDOW:]
 sensor_series = [{"t": f"#{c}", "h": h, "v": round(float(v), 2)} for h, (c, v) in enumerate(zip(cyc, rul))]
 
 first_warn = next(h for h, v in enumerate(rul) if v < yellow)
-first_crit = next(h for h, v in enumerate(rul) if v < red)
+first_crit = next(h for h, v in enumerate(rul) if v <= red)
 alert_log = [
     {"h": first_crit, "time": f"cycle #{cyc[first_crit]}", "equipment": f"Engine #{featured}", "sensor": "예측 RUL",
      "severity": "critical", "action": "정비 일정 즉시 수립", "type": "EngineRemoval"},
@@ -258,10 +269,10 @@ alert_log = [
 anomaly_window = {"start": first_crit, "end": FEATURED_WINDOW - 1}
 
 # ---------------------------------------------------------------------------
-# 5. 조기경보 성능 (예측 RUL < 20 을 "위험"으로 보는 규칙, 공식 test 100대)
+# 5. 조기경보 성능 (예측 RUL ≤ 30 을 "위험"으로 보는 신호등 규칙, 공식 test 100대 마지막 시점)
 # ---------------------------------------------------------------------------
-pred_danger = summary["predicted_RUL"] < red
-true_danger = summary["true_RUL_for_validation_only"] < red
+pred_danger = summary["predicted_RUL"] <= red
+true_danger = summary["true_RUL_for_validation_only"] <= red
 tp = int((pred_danger & true_danger).sum())
 fn = int((~pred_danger & true_danger).sum())
 fp = int((pred_danger & ~true_danger).sum())
@@ -356,7 +367,7 @@ data_meta = {
     "testEngines": n_engines,
     "selectedEngines": [int(r["id"].split("-")[1]) for r in ranking],
     "featuredEngine": featured,
-    "note": f"시간축은 엔진 운행 사이클(cycle). 위험 등급(RED/YELLOW/GREEN)은 예측 RUL 기준(<{red}/<{yellow}/그 외). "
+    "note": f"시간축은 엔진 운행 사이클(cycle). 위험 등급(RED/YELLOW/GREEN)은 예측 RUL 기준(≤{red}/<{yellow}/그 외). "
             "비용·정비시간은 가정값(08_export_dashboard_ts.py COST_ASSUMPTIONS), 탐지 성능(TP/FN/FP)은 LSTM 모델의 실제 test set 결과. "
             "RUL 신뢰구간·생존곡선은 검증셋에서 예측이 비슷했던 사례들의 실제 RUL 분포.",
 }
@@ -382,6 +393,10 @@ export const statusLabel: Record<Status, string> = {{
 }}
 
 export const dataMeta = {J(data_meta)}
+
+/** 신호등 기준 (분석 레포 common.py의 DANGER_RUL · RISK_THRESHOLDS) — 화면 문구도 이 값을 씀
+ *  위험: 예측 RUL ≤ dangerRul, 주의: dangerRul 초과 ~ warningRul 미만, 정상: warningRul 이상 */
+export const riskThresholds = {{ dangerRul: {red}, warningRul: {yellow} }}
 
 /** 메인 차트: 대표 엔진(#{featured})의 예측 RUL 추이 — h = 창 안의 사이클 순서(0~{FEATURED_WINDOW - 1}) */
 export const sensorSeries: {{ t: string; h: number; v: number }}[] = {J(sensor_series)}
@@ -436,7 +451,7 @@ export interface AlertRow {{
   type?: string
 }}
 
-/** 대표 엔진(#{featured})의 예측 RUL이 주의({yellow}미만)/위험({red}미만) 임계값을 넘은 시점 — 실제 계산값 */
+/** 대표 엔진(#{featured})의 예측 RUL이 주의({yellow} 미만)/위험({red} 이하) 임계값을 넘은 시점 — 실제 계산값 */
 export const alertLog: AlertRow[] = {J(alert_log)}
 
 export function getAlertsUpToHour(hour: number): AlertRow[] {{
@@ -486,7 +501,7 @@ export const DEFAULT_ENGINE_ID = 'engine-{featured}'
 
 export const trendMeta: Record<string, {{ unit: string; domain: [number, number] }}> = {J(trend_meta)}
 
-/** 위험 등급(RUL<{red}) 조기경보 성능 — LSTM 모델, 공식 test {n_engines}개 엔진 기준 실제 계산값
+/** 위험 등급(RUL≤{red}) 조기경보 성능 — LSTM 모델, 공식 test {n_engines}개 엔진 기준 실제 계산값
  *  (TP={tp}, FN={fn}, FP={fp}) */
 export const classifierMetrics = {J(classifier_metrics)}
 

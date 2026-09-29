@@ -6,41 +6,41 @@
       "n_estimators": 100,
       "max_depth": 8,
       "val_MAE": 12.310613017515854,
-      "seconds": 20.5
+      "seconds": 6.5
     },
     {
       "n_estimators": 200,
       "max_depth": 10,
-      "val_MAE": 12.01724535224216,
-      "seconds": 47.7
+      "val_MAE": 12.017245352242158,
+      "seconds": 16.6
     },
     {
       "n_estimators": 300,
       "max_depth": 12,
-      "val_MAE": 11.937440587347652,
-      "seconds": 79.5
+      "val_MAE": 11.93744058734765,
+      "seconds": 30.5
     },
     {
       "n_estimators": 300,
       "max_depth": null,
       "val_MAE": 11.903724447288534,
-      "seconds": 95.5
+      "seconds": 43.1
     }
   ],
   "chosen_hyperparams": {
     "n_estimators": 300,
     "max_depth": null,
     "val_MAE": 11.903724447288534,
-    "seconds": 95.5
+    "seconds": 43.1
   },
   "validation": {
     "MAE": 11.903724447288534,
     "RMSE": 17.270903955270324,
-    "NASA_score": 44331.952376889436
+    "NASA_score": 44331.95237688943
   },
   "official_test": {
-    "MAE": 14.192074568383177,
-    "RMSE": 19.87102107819407,
-    "NASA_score": 1275.778966889682
+    "MAE": 14.192074568383175,
+    "RMSE": 19.871021078194065,
+    "NASA_score": 1275.778966889681
   }
 }

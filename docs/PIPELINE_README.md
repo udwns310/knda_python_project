@@ -1,5 +1,7 @@
 # Sentinel 파이프라인 실행 가이드 (팀원용)
 
+> 처음 보는 분은 [`EASY_GUIDE.md`](EASY_GUIDE.md)부터 읽어 주세요 — 용어와 개념을 코드 없이 쉽게 설명한 문서입니다.
+
 ## 폴더 구조
 ```
 sentinel_project/
@@ -14,12 +16,14 @@ sentinel_project/
     06_domain_interpretation.py 도메인 해석 (센서 중요도)
     07_export_dashboard.py       대시보드용 데이터 export (JSON)
     08_export_dashboard_ts.py     대시보드 레포가 실제로 읽는 mock.ts 생성
+    09_classification.py          [필수 과제] 고장 임박(잔여 ≤ 30) 이진 분류: Z-score 기준 모델 vs RandomForest
   outputs/
     figures/             그래프 이미지 (EDA, 모델비교, 오류사례, 피처중요도)
     metrics/              모델별 성능 수치(json/csv), 예측값(csv)
     models/                학습된 모델 파일 (rf_model.joblib, lstm_model.pt)
     dashboard_data/          대시보드 연동용 최종 산출물 (README.md에 스키마 설명)
   docs/
+    EASY_GUIDE.md          처음 보는 사람을 위한 쉬운 설명서 (용어·개념·결과 읽는 법)
     DESIGN_DECISIONS.md    임의 설정값 근거 + 참고자료 활용 내역 (필독)
     PIPELINE_README.md      이 파일
 ```
@@ -37,6 +41,7 @@ python scripts/05_evaluate.py
 python scripts/06_domain_interpretation.py
 python scripts/07_export_dashboard.py
 python scripts/08_export_dashboard_ts.py   # 대시보드용 mock.ts 생성 (torch 불필요)
+python scripts/09_classification.py        # 필수 과제: 고장 임박 이진 분류 (약 2분, torch 불필요)
 ```
 08번이 만든 `outputs/dashboard_data/mock.ts`를 대시보드 레포의 `src/data/mock.ts`로 복사하면
 대시보드에 반영됩니다.
