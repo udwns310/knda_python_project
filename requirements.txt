@@ -1,0 +1,10 @@
+# 개발·검증에 사용한 버전 (Python 3.14, Windows 11, CPU)
+# 설치: pip install -r requirements.txt
+pandas>=2.3
+numpy>=2.0
+scikit-learn>=1.5
+matplotlib>=3.9
+joblib>=1.4
+# PyTorch는 04·05·07번(LSTM)에만 필요. GPU가 없으면 CPU 버전으로 충분합니다:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.4
