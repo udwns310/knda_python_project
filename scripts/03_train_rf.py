@@ -29,14 +29,14 @@ from common import (
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_MODELS
+from common import DATA, OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 준비 (baseline과 완전히 동일한 분할을 재사용 — common.py의 seed=42
 #    덕분에 항상 같은 20개 엔진이 validation으로 뽑힙니다. 모델마다 다른 분할을
 #    쓰면 비교가 불공정해지므로 이 점이 중요합니다.)
 # ---------------------------------------------------------------------------
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 
@@ -122,8 +122,8 @@ val_out.to_csv(f"{OUT_METRICS}/rf_val_predictions.csv", index=False)
 # ---------------------------------------------------------------------------
 # 4. 공식 test 세트 평가
 # ---------------------------------------------------------------------------
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
-rul_true_file = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+test_raw = load_raw(TEST_FILE)
+rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 
 test_norm = norm.transform(test_raw)

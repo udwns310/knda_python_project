@@ -51,6 +51,23 @@ python scripts/09_classification.py        # 필수 과제: 고장 임박 이진
 `outputs/models/`(학습된 모델 파일)는 용량 때문에 레포에 올리지 않습니다. 03·04번을
 실행하면 자동으로 생성되고, 05·07번은 이 파일이 있어야 돌아갑니다.
 
+## 다른 데이터셋(FD002~FD004)으로 실행하기
+기본은 FD001이고, 환경변수 `CMAPSS_DATASET` 하나만 바꾸면 같은 스크립트로 다른 서브셋을 돌립니다.
+1. [NASA PCoE 데이터 저장소](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/)에서
+   "Turbofan Engine Degradation Simulation" (CMAPSSData.zip)을 받아, `train_FD004.txt`,
+   `test_FD004.txt`, `RUL_FD004.txt`를 `data/` 폴더에 넣습니다 (용량이 커서 레포에는 없음).
+2. 환경변수를 지정하고 01번부터 순서대로 실행합니다.
+   ```powershell
+   $env:CMAPSS_DATASET="FD004"
+   python scripts/01_eda.py
+   # ... 02~07, 09 동일 (08번 대시보드 생성은 FD001 전용)
+   ```
+   Git Bash에서는 `CMAPSS_DATASET=FD004 python scripts/01_eda.py` 처럼 앞에 붙이면 됩니다.
+3. 결과는 `outputs/FD004/` 아래에 따로 저장되어 FD001 결과(`outputs/`)를 덮어쓰지 않습니다.
+   FD004는 데이터가 FD001의 약 3배라 03번은 약 8분, 04번은 약 15~20분 걸립니다.
+- FD002·FD004는 비행 조건이 6가지로 바뀌는 데이터라, 센서 정규화를 **운전조건별로** 합니다
+  (`common.py`의 `assign_regime`, `Normalizer`). 자세한 내용은 `docs/FD004_RESULTS.md`.
+
 ## 각 사람이 자기 파트를 이어받으려면
 - **데이터/센서 관련 질문**: `scripts/common.py` 상단 주석 + `docs/DESIGN_DECISIONS.md`
   1~3번 항목 확인

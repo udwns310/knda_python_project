@@ -285,7 +285,8 @@
         32,
         31
       ],
-      "s4_ma15_at_cycles": [
+      "sensor": "s4",
+      "sensor_ma15_at_cycles": [
         1415.41,
         1416.34,
         1418.48,
@@ -334,7 +335,8 @@
         20,
         19
       ],
-      "s4_ma15_at_cycles": [
+      "sensor": "s4",
+      "sensor_ma15_at_cycles": [
         1413.5,
         1413.55,
         1414.09,
@@ -349,6 +351,6 @@
         1415.59
       ]
     },
-    "typical_s4_at_danger_entry": 1417.15
+    "typical_at_danger_entry": 1417.15
   }
 }

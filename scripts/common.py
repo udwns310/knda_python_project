@@ -16,6 +16,7 @@ Sentinel 프로젝트(터보팬 엔진 RUL 예측) 전 과정에서 공통으로
   같은 항목명으로 다시 정리되어 있고, 근거도 그쪽에 자세히 적었습니다.
 """
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -24,21 +25,42 @@ import matplotlib
 import matplotlib.font_manager as fm
 
 # ---------------------------------------------------------------------------
-# 0. 폴더 경로 (모든 스크립트가 여기서 가져다 씀)
+# 0-1. 어떤 데이터셋을 쓸지 (FD001 / FD002 / FD003 / FD004)
+# ---------------------------------------------------------------------------
+# 기본은 FD001입니다. 다른 서브셋을 돌리려면 실행할 때 환경변수로 이름만 바꿔 주면 됩니다.
+#   PowerShell:  $env:CMAPSS_DATASET="FD004"; python scripts/03_train_rf.py
+#   Git Bash:    CMAPSS_DATASET=FD004 python scripts/03_train_rf.py
+# 코드 안의 파일 이름(train_FD004.txt 등)과 결과 폴더가 이 값에 맞춰 자동으로 바뀝니다.
+DATASET = os.environ.get("CMAPSS_DATASET", "FD001").upper()
+if DATASET not in ("FD001", "FD002", "FD003", "FD004"):
+    raise SystemExit(f"CMAPSS_DATASET은 FD001~FD004 중 하나여야 합니다 (지금: {DATASET})")
+# FD002·FD004는 비행 조건(고도·속도·스로틀)이 6가지로 바뀌며 섞여 있는 "다중 운전조건" 데이터
+MULTI_REGIME = DATASET in ("FD002", "FD004")
+
+# ---------------------------------------------------------------------------
+# 0-2. 폴더 경로 (모든 스크립트가 여기서 가져다 씀)
 # ---------------------------------------------------------------------------
 # 경로를 "/home/claude/..." 같은 특정 컴퓨터의 절대경로로 적어두면 다른 팀원 PC
 # (Windows/Mac)에서는 실행이 안 됩니다. 그래서 "이 파일(common.py)이 있는 위치"를
 # 기준으로 프로젝트 폴더를 계산합니다:
 #   common.py 위치 = <프로젝트>/scripts/common.py  →  한 단계 위 = <프로젝트>
 # 이렇게 하면 레포를 어디에 clone하든, 어느 폴더에서 실행하든 똑같이 동작합니다.
-# (문자열로 바꿔두는 이유: 기존 코드가 f"{DATA}/train_FD001.txt"처럼 문자열로
-#  이어 붙여 쓰고 있어서, 그 코드를 그대로 쓸 수 있게 하기 위함입니다.)
+# 결과 폴더: FD001은 예전처럼 outputs/ 바로 아래, 다른 서브셋은 outputs/FD004/ 처럼
+# 따로 저장해서 서로 덮어쓰지 않고 나란히 비교할 수 있게 했습니다.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA = str(PROJECT_ROOT / "data")
-OUT_FIG = str(PROJECT_ROOT / "outputs" / "figures")
-OUT_METRICS = str(PROJECT_ROOT / "outputs" / "metrics")
-OUT_MODELS = str(PROJECT_ROOT / "outputs" / "models")
-OUT_DASH = str(PROJECT_ROOT / "outputs" / "dashboard_data")
+TRAIN_FILE = f"{DATA}/train_{DATASET}.txt"
+TEST_FILE = f"{DATA}/test_{DATASET}.txt"
+RUL_FILE = f"{DATA}/RUL_{DATASET}.txt"
+_OUT_ROOT = PROJECT_ROOT / "outputs" if DATASET == "FD001" else PROJECT_ROOT / "outputs" / DATASET
+OUT_FIG = str(_OUT_ROOT / "figures")
+OUT_METRICS = str(_OUT_ROOT / "metrics")
+OUT_MODELS = str(_OUT_ROOT / "models")
+OUT_DASH = str(_OUT_ROOT / "dashboard_data")
+
+if not Path(TRAIN_FILE).exists():
+    raise SystemExit(f"{TRAIN_FILE} 파일이 없습니다. NASA PCoE 데이터 저장소에서 CMAPSSData.zip을 받아 "
+                     f"train/test/RUL_{DATASET}.txt 세 파일을 data/ 폴더에 넣어 주세요 (README 참고).")
 
 # 결과를 저장할 폴더가 없으면 미리 만들어 둡니다. 특히 outputs/models는 학습된 모델
 # 파일(용량이 큼)이라 레포에 올라가 있지 않아서, 처음 clone한 사람은 이 폴더가 없습니다.
@@ -100,12 +122,34 @@ SETTING_COLS = ["os1", "os2", "os3"]
 #    동일하게 "정보 없는 센서"로 분류되는 목록과 일치합니다 — 우연이 아니라 물리적으로
 #    타당한 결과입니다. FD001은 운전조건이 1개뿐이라 운전조건 관련 신호(os1~3)와
 #    그 조건에 종속된 일부 센서가 고정값처럼 나옵니다.)
+#
+# 다중 운전조건(FD002·FD004)에서는 전체 표준편차를 보면 안 됩니다. 비행 조건이 바뀔 때마다
+# 센서값이 크게 뛰어서, 사실상 고정된 센서도 "많이 움직이는" 것처럼 보이기 때문입니다.
+# 그래서 "운전조건 하나 안에서의 표준편차" 중 가장 큰 값으로 판단합니다. FD001은 운전조건이
+# 하나뿐이라 이 계산이 전체 표준편차와 똑같아서, 결과가 예전과 동일합니다.
+# (FD004 결과: s1, s5, s10, s16, s18, s19와 os1~3 제거 → 센서 15개 사용)
 CONST_STD_THRESHOLD = 0.01
 
 
+# ---------------------------------------------------------------------------
+# [임의 설정값 #13] 운전조건(regime) 구분 방법 — FD002·FD004용
+# ---------------------------------------------------------------------------
+# 운전 설정 3개(os1 고도, os2 마하수, os3 스로틀)는 6개 조합 근처에만 찍혀 있고 그 사이
+# 값이 없습니다 (FD004 train: 0/0/100, 10/0.25/100, 20/0.7/100, 25/0.62/60, 35/0.84/100,
+# 42/0.84/100 — 각 9천~1만5천 행). 그래서 참고자료(MathWorks similarity-based RUL)처럼
+# K-means를 돌리지 않고, os1은 정수, os2는 소수 둘째 자리, os3는 정수로 반올림한 조합을
+# 그대로 운전조건 이름으로 씁니다 — 결과가 같으면서 무작위성이 없고 설명하기 쉽습니다.
+# FD001·FD003은 모든 행이 한 조합으로 묶여 운전조건이 1개가 됩니다.
+def assign_regime(df: pd.DataFrame) -> pd.Series:
+    return (df["os1"].round(0).abs().astype(str) + "/" + df["os2"].round(2).abs().astype(str)
+            + "/" + df["os3"].round(0).astype(str))
+
+
 def load_raw(path: str) -> pd.DataFrame:
-    """train_FD001.txt / test_FD001.txt 같은 원본 텍스트 파일을 DataFrame으로 읽습니다."""
+    """train_FD001.txt / test_FD001.txt 같은 원본 텍스트 파일을 DataFrame으로 읽고,
+    운전조건 이름(regime) 열을 붙입니다."""
     df = pd.read_csv(path, sep=r"\s+", header=None, names=ALL_COLS)
+    df["regime"] = assign_regime(df)
     return df
 
 
@@ -116,7 +160,7 @@ def find_constant_columns(train_df: pd.DataFrame, threshold: float = CONST_STD_T
     "미래 정보(test)를 미리 훔쳐본 것"이 되어 데이터 누수(data leakage)가 됩니다.
     """
     candidate_cols = SENSOR_COLS_RAW + SETTING_COLS
-    stds = train_df[candidate_cols].std()
+    stds = train_df.groupby("regime")[candidate_cols].std().max()
     return list(stds[stds < threshold].index)
 
 
@@ -182,8 +226,15 @@ def add_rul_labels(df: pd.DataFrame) -> pd.DataFrame:
 # 원칙과도 동일합니다.) test 데이터는 이 train 기준 값을 그대로 "적용"만 받습니다.
 # test 데이터로 새로 평균/표준편차를 계산해버리면 "아직 보면 안 되는 미래 데이터의
 # 통계 정보"가 모델에 흘러들어가는 데이터 누수가 됩니다.
+#
+# 다중 운전조건(FD002·FD004)에서는 평균/표준편차를 "운전조건별로 따로" 계산합니다.
+# 같은 엔진 상태라도 고도 0에서와 고도 42에서의 센서값은 전혀 다르기 때문에, 전체 평균으로
+# 빼면 "비행 조건이 바뀐 것"이 "엔진이 닳은 것"처럼 보입니다. 운전조건마다 그 조건의
+# 평균을 빼 주면 조건 차이가 사라지고 열화 신호만 남습니다. (MathWorks similarity-based RUL
+# 참고자료의 "운전조건별 정규화" 단계와 같은 아이디어.) FD001은 운전조건이 하나라 예전과 같습니다.
 class Normalizer:
-    """train으로 학습(fit)하고 train/test 양쪽에 동일하게 적용(transform)하는 정규화기."""
+    """train으로 학습(fit)하고 train/test 양쪽에 동일하게 적용(transform)하는 정규화기.
+    운전조건(regime)별로 평균·표준편차를 따로 계산합니다."""
 
     def __init__(self):
         self.mean_ = None
@@ -192,13 +243,40 @@ class Normalizer:
 
     def fit(self, df: pd.DataFrame, cols: list):
         self.cols_ = cols
-        self.mean_ = df[cols].mean()
-        self.std_ = df[cols].std().replace(0, 1.0)  # 혹시 모를 0 나눗셈 방지
+        g = df.groupby("regime")[cols]
+        self.mean_ = g.mean()
+        self.std_ = g.std().replace(0, 1.0).fillna(1.0)  # 혹시 모를 0 나눗셈 방지
+        return self
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        unknown = set(df["regime"]) - set(self.mean_.index)
+        if unknown:
+            raise ValueError(f"train에 없던 운전조건이 있습니다: {unknown}")
+        df = df.copy()
+        mean = self.mean_.loc[df["regime"]].to_numpy()
+        std = self.std_.loc[df["regime"]].to_numpy()
+        df[self.cols_] = (df[self.cols_].to_numpy() - mean) / std
+        return df
+
+
+class RegimeCorrector:
+    """그래프·추세 분석용: 센서값에서 "운전조건 때문에 생긴 차이"만 빼고 원래 단위는 유지합니다.
+        보정값 = 원래값 − (그 운전조건의 train 평균) + (train 전체 평균)
+    예) s4 온도가 고도에 따라 1,100~1,420°R로 뛰어도, 보정 후에는 한 줄의 열화 추세로 보입니다.
+    FD001은 운전조건이 하나라 보정값 = 원래값입니다 (그래프와 수치가 예전과 동일)."""
+
+    def fit(self, df: pd.DataFrame, cols: list):
+        self.cols_ = cols
+        self.regime_mean_ = df.groupby("regime")[cols].mean()
+        self.global_mean_ = df[cols].mean()
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
-        df[self.cols_] = (df[self.cols_] - self.mean_) / self.std_
+        if not MULTI_REGIME:
+            return df
+        df[self.cols_] = (df[self.cols_].to_numpy() - self.regime_mean_.loc[df["regime"]].to_numpy()
+                          + self.global_mean_.to_numpy())
         return df
 
 

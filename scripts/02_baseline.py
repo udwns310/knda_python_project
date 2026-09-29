@@ -31,14 +31,14 @@ from common import (
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS
+from common import DATA, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 로드 + train/validation 엔진 분할 (common.py의 split_engines 사용 —
 #    모든 모델이 "같은 엔진 분할"을 써야 서로 공정하게 비교할 수 있으므로 반드시
 #    common.py의 함수를 그대로 재사용합니다. 절대 여기서 새로 랜덤 분할하지 않습니다.)
 # ---------------------------------------------------------------------------
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 
@@ -85,8 +85,8 @@ val_out.to_csv(f"{OUT_METRICS}/baseline_val_predictions.csv", index=False)
 #    이 test 세트는 "마지막에 딱 한 번만" 쓰는 최종 블라인드 테스트입니다.
 #    (하이퍼파라미터를 이걸로 조정하면 안 됩니다 — 조정은 항상 validation으로만.)
 # ---------------------------------------------------------------------------
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
-rul_true_file = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+test_raw = load_raw(TEST_FILE)
+rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 
 # test_FD001.txt는 각 엔진이 "고장 전 어느 시점까지"만 기록되어 있고, RUL_FD001.txt는

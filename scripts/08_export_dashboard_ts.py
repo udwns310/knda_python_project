@@ -38,8 +38,13 @@ import pandas as pd
 
 from common import (
     load_raw, RUL_CLIP_VALUE, RISK_THRESHOLDS, risk_level,
-    DATA, OUT_METRICS, OUT_DASH,
+    DATA, OUT_METRICS, OUT_DASH, TRAIN_FILE, DATASET,
 )
+
+# 대시보드(발표·시연용)는 FD001 결과로 만듭니다. 엔진 9대 선정·대표 엔진 등 아래 설정이 FD001
+# 결과를 보고 고른 값이라, 다른 서브셋에서는 실행하지 않습니다.
+if DATASET != "FD001":
+    raise SystemExit(f"08번(대시보드 mock.ts)은 FD001 전용입니다 (지금 데이터셋: {DATASET}). 01~07, 09번 결과를 보세요.")
 
 # ---------------------------------------------------------------------------
 # [임의 설정값 #8] 대시보드에 보여줄 엔진 9대
@@ -136,7 +141,7 @@ def load_timeseries(unit: int) -> dict:
         return json.load(f)
 
 
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 
 # 검증셋 예측 + 자르지 않은 실제 RUL (= 그 엔진의 마지막 사이클 - 현재 사이클)
 val = pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")

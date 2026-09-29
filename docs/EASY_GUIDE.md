@@ -311,6 +311,7 @@ C-MAPSS 데이터에는 **돈이나 정비 시간 정보가 전혀 없습니다.
 |---|---|
 | 이 문서 (`EASY_GUIDE.md`) | 처음 보는 사람, 발표 준비 |
 | `PIPELINE_README.md` | 코드를 직접 실행해 보려는 사람 |
+| `FD004_RESULTS.md` | 더 어려운 데이터(비행 조건 6가지·고장 원인 2가지)로 다시 해 본 확장 실험 결과 |
 | `DESIGN_DECISIONS.md` | "왜 이 값을 골랐나?"의 자세한 근거가 필요한 사람 |
 | `outputs/dashboard_data/README.md` | 대시보드 데이터 형식을 알아야 하는 사람 |
 | 각 `scripts/*.py` 파일 맨 위 설명 | 특정 단계를 고치려는 사람 |
