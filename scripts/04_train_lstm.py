@@ -40,14 +40,14 @@ from common import (
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_MODELS
+from common import DATA, OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 torch.manual_seed(42)  # 재현성을 위한 시드 고정 (RF와 마찬가지로 42 사용 — 팀 전체 관례)
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 준비 (RF와 동일한 엔진 분할/정규화 재사용)
 # ---------------------------------------------------------------------------
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 
@@ -191,8 +191,8 @@ val_out.to_csv(f"{OUT_METRICS}/lstm_val_predictions.csv", index=False)
 # ---------------------------------------------------------------------------
 # 6. 공식 test 세트 평가 (부분 시퀀스 → 마지막 시점 예측만 사용)
 # ---------------------------------------------------------------------------
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
-rul_true_file = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+test_raw = load_raw(TEST_FILE)
+rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 test_norm = norm.transform(test_raw)
 

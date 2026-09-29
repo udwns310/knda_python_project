@@ -29,7 +29,7 @@ from common import (
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_DASH, OUT_MODELS
+from common import DATA, OUT_METRICS, OUT_DASH, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 os.makedirs(f"{OUT_DASH}/engine_timeseries", exist_ok=True)
 
 
@@ -67,7 +67,7 @@ model = RULLSTM(len(active_sensors), ckpt["hidden_size"], ckpt["fc_size"], ckpt[
 model.load_state_dict(ckpt["model_state"])
 model.eval()
 
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 norm = Normalizer().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
@@ -81,9 +81,9 @@ def predict_sequence(seq_tensor):
     return np.clip(pred_norm * RUL_CLIP_VALUE, 0, RUL_CLIP_VALUE)
 
 
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
+test_raw = load_raw(TEST_FILE)
 test_norm = norm.transform(test_raw)
-rul_true_file = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 
 # ---------------------------------------------------------------------------

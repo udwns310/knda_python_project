@@ -18,7 +18,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_FIG
+from common import DATA, OUT_METRICS, OUT_FIG, TRAIN_FILE
 
 # C-MAPSS 센서 21개의 물리적 의미 (원자료 기호 → 우리말). 발표 때 "s4가 뭔데요?"라는
 # 질문에 바로 답할 수 있게 정리했습니다.
@@ -57,10 +57,12 @@ for sensor, imp in sensor_importance.head(8).items():
     print(f"  {sensor} ({SENSOR_MEANING.get(sensor,'?')}) : 중요도 {imp:.3f}")
 
 # EDA에서 만든 trendability 랭킹을 다시 계산 (01_eda.py와 동일 로직, 여기서 재사용)
-from common import load_raw, add_rul_labels, find_constant_columns, SENSOR_COLS_RAW
-train = add_rul_labels(load_raw(f"{DATA}/train_FD001.txt"))
+from common import load_raw, add_rul_labels, find_constant_columns, SENSOR_COLS_RAW, RegimeCorrector
+train = add_rul_labels(load_raw(TRAIN_FILE))
 const_cols = find_constant_columns(train)
 active_sensors = [c for c in SENSOR_COLS_RAW if c not in const_cols]
+# 다중 운전조건이면 조건 차이를 뺀 값으로 추세를 봅니다 (FD001은 원래값 그대로)
+train = RegimeCorrector().fit(train, active_sensors).transform(train)
 trend_corr = {c: abs(train[[c, "cycle"]].corr().iloc[0, 1]) for c in active_sensors}
 trend_rank = pd.Series(trend_corr).sort_values(ascending=False)
 

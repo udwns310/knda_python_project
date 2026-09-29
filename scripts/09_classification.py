@@ -31,7 +31,7 @@ from sklearn.model_selection import GroupKFold
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
     Normalizer, build_rf_features, SENSOR_COLS_RAW, DANGER_RUL,
-    DATA, OUT_FIG, OUT_METRICS,
+    DATA, OUT_FIG, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
 # 위험 기준(잔여 ≤ 30사이클, [임의 설정값 #11])은 대시보드 빨간불과 같은 값을 쓰도록
@@ -62,7 +62,7 @@ def scores(y_true, y_pred) -> dict:
 # ---------------------------------------------------------------------------
 # 1. 데이터 준비 (03번 RF 회귀와 완전히 같은 분할·정규화·특성)
 # ---------------------------------------------------------------------------
-train_raw = add_rul_labels(load_raw(f"{DATA}/train_FD001.txt"))
+train_raw = add_rul_labels(load_raw(TRAIN_FILE))
 train_units, val_units = split_engines(train_raw)
 const_cols = find_constant_columns(train_raw[train_raw["unit"].isin(train_units)])
 active_sensors = [c for c in SENSOR_COLS_RAW if c not in const_cols]
@@ -79,9 +79,9 @@ feature_cols = [c for c in train_feat.columns if c not in ("unit", "cycle", "RUL
 train_feat["danger"] = (train_feat["RUL"] <= DANGER_RUL).astype(int)
 val_feat["danger"] = (val_feat["RUL"] <= DANGER_RUL).astype(int)
 
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
+test_raw = load_raw(TEST_FILE)
 test_feat = build_rf_features(norm.transform(test_raw), active_sensors)
-rul_true = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+rul_true = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true["unit"] = np.arange(1, len(rul_true) + 1)
 test_last = test_feat.loc[test_feat.groupby("unit")["cycle"].idxmax()].merge(rul_true, on="unit")
 test_last["danger"] = (test_last["RUL"] <= DANGER_RUL).astype(int)
@@ -101,7 +101,10 @@ print(f"  train 행 {len(train_feat):,} (위험 {train_feat['danger'].mean():.1%
 #     올라가는지(+1) 내려가는지(-1)"를 보고 방향을 맞춘 뒤 평균 냅니다.
 #   - 한 사이클씩은 값이 흔들리므로 최근 15사이클 평균(이동 평균)으로 부드럽게 만듭니다.
 #   - 경보 기준값(τ)은 train 엔진에서 F1이 가장 높은 값으로 정합니다.
-tr = train_raw[train_raw["unit"].isin(train_units)]
+#   - 다중 운전조건(FD002·FD004)에서는 비행 조건 차이를 먼저 빼 준 "운전조건 보정값"으로
+#     계산합니다 (common.py RegimeCorrector). FD001은 보정값 = 원래값이라 결과가 같습니다.
+corrector = RegimeCorrector().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
+tr = corrector.transform(train_raw[train_raw["unit"].isin(train_units)])
 normal = tr[tr["cycle"] <= BASELINE_NORMAL_CYCLES]
 mu, sd = normal[active_sensors].mean(), normal[active_sensors].std().replace(0, 1.0)
 direction = np.sign(tr[active_sensors].corrwith(tr["cycle"]))
@@ -114,12 +117,12 @@ def health_index(df: pd.DataFrame) -> pd.Series:
 
 
 def with_hi(raw: pd.DataFrame) -> pd.DataFrame:
-    raw = raw.sort_values(["unit", "cycle"]).copy()
+    raw = corrector.transform(raw.sort_values(["unit", "cycle"]))
     raw["HI"] = health_index(raw)
     return raw[["unit", "cycle", "HI"]]
 
 
-hi_train = train_feat[["unit", "cycle", "danger"]].merge(with_hi(tr), on=["unit", "cycle"])
+hi_train = train_feat[["unit", "cycle", "danger"]].merge(with_hi(train_raw[train_raw["unit"].isin(train_units)]), on=["unit", "cycle"])
 cands = np.quantile(hi_train["HI"], np.linspace(0.5, 0.99, 200))
 f1s = [f1_score(hi_train["danger"], (hi_train["HI"] >= c).astype(int)) for c in cands]
 tau = float(cands[int(np.argmax(f1s))])
@@ -138,7 +141,7 @@ hi_test = test_last[["unit", "cycle"]].merge(hi_test_all, on=["unit", "cycle"])
 X_train, y_train = train_feat[feature_cols], train_feat["danger"]
 
 # 확률 임곗값을 고르기 위한 "train 안에서의 연습 시험": 엔진 단위 5-겹 교차검증
-# (validation 20대는 최종 평가용으로 남겨 두고, 임곗값 선택에 쓰지 않습니다)
+# (validation 엔진은 최종 평가용으로 남겨 두고, 임곗값 선택에 쓰지 않습니다)
 oof = np.zeros(len(train_feat))
 for tr_idx, te_idx in GroupKFold(n_splits=N_FOLDS).split(X_train, y_train, groups=train_feat["unit"]):
     m = RandomForestClassifier(**RF_PARAMS).fit(X_train.iloc[tr_idx], y_train.iloc[tr_idx])
@@ -208,9 +211,9 @@ for name in val_preds:
 comparison = pd.DataFrame(rows)
 comparison.to_csv(f"{OUT_METRICS}/classification_comparison.csv", index=False)
 
-print("\n[validation 20대 · 모든 사이클 기준]")
+print(f"\n[validation {len(val_units)}대 · 모든 사이클 기준]")
 print(comparison[["model", "val_precision", "val_recall", "val_F1", "val_TP", "val_FN", "val_FP"]].to_string(index=False))
-print("\n[공식 test 100대 · 마지막 관측 시점 기준]")
+print(f"\n[공식 test {len(test_last)}대 · 마지막 관측 시점 기준]")
 print(comparison[["model", "test_precision", "test_recall", "test_F1", "test_TP", "test_FN", "test_FP"]].to_string(index=False))
 
 # 혼동행렬 그림 (기준 모델 vs 최종 RandomForest, validation 기준)
@@ -227,7 +230,7 @@ for ax, name in zip(axes, ["기준모델(이동 Z-score)", final_name]):
     ax.set_yticks([0, 1], ["실제: 정상", "실제: 위험"])
     s = scores(val_feat["danger"], val_preds[name])
     ax.set_title(f"{name}\nPrecision {s['precision']:.2f} · Recall {s['recall']:.2f} · F1 {s['F1']:.2f}", fontsize=10)
-fig.suptitle(f"혼동행렬 — validation 엔진 20대의 모든 사이클 (위험 = 잔여 ≤ {DANGER_RUL}사이클)", fontsize=11)
+fig.suptitle(f"혼동행렬 — {DATASET} validation 엔진 {len(val_units)}대의 모든 사이클 (위험 = 잔여 ≤ {DANGER_RUL}사이클)", fontsize=11)
 fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/cls_confusion_matrix.png")
 plt.close(fig)
@@ -284,10 +287,21 @@ val_feat["FP"] = (val_feat["alarm"] == 1) & (val_feat["danger"] == 0)
 val_feat["FN"] = (val_feat["alarm"] == 0) & (val_feat["danger"] == 1)
 fp_unit = int(val_feat.groupby("unit")["FP"].sum().idxmax())
 fn_unit = int(val_feat.groupby("unit")["FN"].sum().idxmax())
-raw_val = train_raw[train_raw["unit"].isin(val_units)]
+raw_val = corrector.transform(train_raw[train_raw["unit"].isin(val_units)])
 
-# 비교용: train 엔진들이 위험 구간에 들어설 때(잔여 30) 센서 평균값
-typical_s4_at_danger = tr[tr["RUL"].between(DANGER_RUL - 2, DANGER_RUL + 2)]["s4"].mean()
+# 그래프에 그릴 센서: 06번 도메인 해석에서 RUL 예측에 가장 크게 기여한 센서 1위
+# (FD001은 s4 저압터빈 출구 온도, FD004는 s3 고압압축기 출구 온도). 06번 결과가 없으면 s4.
+try:
+    with open(f"{OUT_METRICS}/domain_interpretation.json", encoding="utf-8") as f:
+        _domain = json.load(f)
+    PLOT_SENSOR = next(iter(_domain["top_sensors_rf"]))
+    _meaning = _domain["sensor_meaning"].get(PLOT_SENSOR, "")
+except FileNotFoundError:
+    PLOT_SENSOR, _meaning = "s4", ""
+PLOT_LABEL = f"{PLOT_SENSOR} {_meaning}".strip()
+
+# 비교용: train 엔진들이 위험 구간에 들어설 때(잔여 30) 그 센서의 평균값
+typical_at_danger = tr[tr["RUL"].between(DANGER_RUL - 2, DANGER_RUL + 2)][PLOT_SENSOR].mean()
 
 
 def plot_case(unit: int, kind: str, filename: str):
@@ -296,14 +310,15 @@ def plot_case(unit: int, kind: str, filename: str):
     danger_start = int(life[unit]) - DANGER_RUL
     mask = g[kind]
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 6), sharex=True)
-    ax1.plot(r["cycle"], r["s4"], color="gray", linewidth=0.8, label="s4 저압터빈 출구 온도 (원값)")
-    ax1.plot(r["cycle"], r["s4"].rolling(15, min_periods=1).mean(), color="black", label="s4 최근 15사이클 평균")
-    ax1.axhline(typical_s4_at_danger, color="purple", linestyle=":", label=f"train 엔진이 위험 진입할 때 평균 ({typical_s4_at_danger:.1f})")
+    ax1.plot(r["cycle"], r[PLOT_SENSOR], color="gray", linewidth=0.8,
+             label=f"{PLOT_LABEL} (" + ("운전조건 보정값" if MULTI_REGIME else "원값") + ")")
+    ax1.plot(r["cycle"], r[PLOT_SENSOR].rolling(15, min_periods=1).mean(), color="black", label=f"{PLOT_SENSOR} 최근 15사이클 평균")
+    ax1.axhline(typical_at_danger, color="purple", linestyle=":", label=f"train 엔진이 위험 진입할 때 평균 ({typical_at_danger:.1f})")
     ax1.axvspan(danger_start, r["cycle"].max(), color="red", alpha=0.08, label=f"실제 위험 구간 (잔여 ≤ {DANGER_RUL})")
     c = g.loc[mask, "cycle"]
-    ax1.scatter(c, r.set_index("cycle").loc[c, "s4"], color="orange" if kind == "FP" else "blue", zorder=3, s=18,
+    ax1.scatter(c, r.set_index("cycle").loc[c, PLOT_SENSOR], color="orange" if kind == "FP" else "blue", zorder=3, s=18,
                 label="오탐 (정상인데 위험 경보)" if kind == "FP" else "미탐 (위험한데 경보 없음)")
-    ax1.set_ylabel("s4 온도 (°R)")
+    ax1.set_ylabel(f"{PLOT_SENSOR} 센서값" + (" (운전조건 보정)" if MULTI_REGIME else ""))
     ax1.legend(fontsize=7, loc="upper left")
     ax2.plot(g["cycle"], g["p"], color="teal", label="모델이 본 위험 확률")
     ax2.axhline(prob_th, color="crimson", linestyle="--", label=f"경보 임곗값 {prob_th:.2f}")
@@ -312,21 +327,22 @@ def plot_case(unit: int, kind: str, filename: str):
     ax2.set_xlabel("운행 사이클 (cycle)")
     ax2.legend(fontsize=7, loc="upper left")
     title = "오탐 사례" if kind == "FP" else "미탐 사례"
-    fig.suptitle(f"{title} — validation 엔진 #{unit} (수명 {int(life[unit])}사이클, {title[:2]} {int(mask.sum())}사이클)", fontsize=11)
+    fig.suptitle(f"{title} — {DATASET} validation 엔진 #{unit} (수명 {int(life[unit])}사이클, {title[:2]} {int(mask.sum())}사이클)", fontsize=11)
     fig.tight_layout()
     fig.savefig(f"{OUT_FIG}/{filename}")
     plt.close(fig)
     return {"unit": unit, "life": int(life[unit]), "count": int(mask.sum()),
             "cycles": [int(x) for x in c], "rul_at_cycles": [int(life[unit]) - int(x) for x in c],
-            "s4_ma15_at_cycles": [round(float(v), 2) for v in r.set_index("cycle")["s4"].rolling(15, min_periods=1).mean().loc[c]]}
+            "sensor": PLOT_SENSOR,
+            "sensor_ma15_at_cycles": [round(float(v), 2) for v in r.set_index("cycle")[PLOT_SENSOR].rolling(15, min_periods=1).mean().loc[c]]}
 
 
 fp_case = plot_case(fp_unit, "FP", "cls_error_case_false_alarm.png")
 fn_case = plot_case(fn_unit, "FN", "cls_error_case_missed.png")
 print(f"\n[오탐 사례] 엔진 #{fp_case['unit']}: {fp_case['count']}사이클, 그때 실제 잔여 {fp_case['rul_at_cycles']}")
 print(f"[미탐 사례] 엔진 #{fn_case['unit']}: {fn_case['count']}사이클, 그때 실제 잔여 {fn_case['rul_at_cycles']}")
-print(f"  (비교: train 엔진이 위험 진입할 때 s4 평균 {typical_s4_at_danger:.2f}, "
-      f"오탐 시점 s4 평균 {fp_case['s4_ma15_at_cycles']}, 미탐 시점 s4 평균 {fn_case['s4_ma15_at_cycles']})")
+print(f"  (비교: train 엔진이 위험 진입할 때 {PLOT_SENSOR} 평균 {typical_at_danger:.2f}, "
+      f"오탐 시점 {PLOT_SENSOR} 평균 {fp_case['sensor_ma15_at_cycles']}, 미탐 시점 평균 {fn_case['sensor_ma15_at_cycles']})")
 
 # ---------------------------------------------------------------------------
 # 8. 저장
@@ -349,7 +365,7 @@ with open(f"{OUT_METRICS}/classification_metrics.json", "w", encoding="utf-8") a
         "lead_time": {"rule": f"{ALARM_CONSECUTIVE}사이클 연속 경보", "median": float(lead["lead_time"].median()),
                       "per_engine": lead.to_dict(orient="records")},
         "error_cases": {"false_alarm": fp_case, "missed": fn_case,
-                        "typical_s4_at_danger_entry": round(float(typical_s4_at_danger), 2)},
+                        "typical_at_danger_entry": round(float(typical_at_danger), 2)},
     }, f, ensure_ascii=False, indent=2)
 print(f"\n저장: {OUT_METRICS}/classification_metrics.json, classification_comparison.csv, "
       f"figures/cls_*.png")

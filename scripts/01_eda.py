@@ -22,13 +22,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from common import (
-    load_raw, find_constant_columns, add_rul_labels, SENSOR_COLS_RAW,
+    load_raw, find_constant_columns, add_rul_labels, SENSOR_COLS_RAW, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_FIG
+from common import DATA, OUT_FIG, TRAIN_FILE
 
-train = load_raw(f"{DATA}/train_FD001.txt")
+train = load_raw(TRAIN_FILE)
 train = add_rul_labels(train)
 
 const_cols = find_constant_columns(train)
@@ -39,6 +39,11 @@ print("[1] 상수 센서 제거 결과")
 print("=" * 70)
 print(f"제거된 컬럼 ({len(const_cols)}개):", const_cols)
 print(f"남은 센서 ({len(active_sensors)}개):", active_sensors)
+print(f"운전조건 수: {train['regime'].nunique()}개 ({DATASET})")
+
+# 다중 운전조건(FD002·FD004)이면, 비행 조건이 바뀔 때마다 센서값이 크게 뛰어서 열화 추세가
+# 가려집니다. 그래서 추세 분석·그래프는 "운전조건 보정값"으로 합니다 (FD001은 원래값 그대로).
+train = RegimeCorrector().fit(train, active_sensors).transform(train)
 
 # ---------------------------------------------------------------------------
 # 2. 추세성(Trendability) 랭킹
@@ -88,8 +93,9 @@ for ax, col in zip(axes, top_sensors):
         ax.plot(g["cycle"], g[col], label=f"engine #{uid}", alpha=0.8)
     ax.set_title(f"sensor {col} (trendability rank corr={rank[col]:.2f})")
     ax.set_xlabel("cycle")
+    ax.set_ylabel("센서값 (운전조건 보정)" if MULTI_REGIME else "센서값")
     ax.legend(fontsize=8)
-fig.suptitle("추세성 상위 센서들의 실제 시계열 (엔진별)")
+fig.suptitle(f"추세성 상위 센서들의 실제 시계열 (엔진별, {DATASET})")
 fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/sensor_trends.png", dpi=130)
 print(f"\n저장: {OUT_FIG}/sensor_trends.png")
@@ -112,7 +118,7 @@ fig3, ax3 = plt.subplots(figsize=(7, 4))
 life = train.groupby("unit")["cycle"].max()
 ax3.hist(life, bins=20, edgecolor="white")
 ax3.axvline(125, color="red", linestyle="--", label="RUL clip=125")
-ax3.set_title(f"train 엔진 100대의 수명 분포 (최소={life.min()}, 최대={life.max()})")
+ax3.set_title(f"train 엔진 {len(life)}대의 수명 분포 (최소={life.min()}, 최대={life.max()})")
 ax3.set_xlabel("수명 (cycle)")
 ax3.legend()
 fig3.tight_layout()

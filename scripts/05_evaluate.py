@@ -27,7 +27,7 @@ import torch
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
-    Normalizer, SENSOR_COLS_RAW, RUL_CLIP_VALUE,
+    Normalizer, SENSOR_COLS_RAW, RUL_CLIP_VALUE, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
 # 04_train_lstm.py 파일을 다시 '실행'하지 않고 그 안의 RULLSTM 클래스 정의만
@@ -57,7 +57,7 @@ class RULLSTM(nn.Module):
 
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_FIG, OUT_MODELS
+from common import DATA, OUT_METRICS, OUT_FIG, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 # ---------------------------------------------------------------------------
 # 1. 세 모델 성능 비교표
@@ -109,10 +109,12 @@ model.eval()
 
 # 정규화기는 랜덤성이 없는(같은 seed=42로 항상 같은 train/val 분할) 결정론적 계산이라
 # 동일하게 재계산해도 04번 스크립트와 완전히 같은 결과가 나옵니다.
-train_raw = load_raw(f"{DATA}/train_FD001.txt")
+train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 norm = Normalizer().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
+# 그래프용: 운전조건 차이를 뺀 센서값 (FD001은 원래값 그대로)
+corrector = RegimeCorrector().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
 
 
 @torch.no_grad()
@@ -142,9 +144,9 @@ print(f"보수적 오류 사례: 엔진 #{int(conservative_case.unit)} "
       f"(실제 RUL={conservative_case.RUL_true:.0f}, 예측={conservative_case.RUL_pred:.1f}, "
       f"오차={conservative_case.residual:.1f} → 실제보다 위험하다고 과소평가)")
 
-test_raw = load_raw(f"{DATA}/test_FD001.txt")
+test_raw = load_raw(TEST_FILE)
 test_norm = norm.transform(test_raw)
-rul_true_file = pd.read_csv(f"{DATA}/RUL_FD001.txt", header=None, names=["RUL"])
+rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 
 
@@ -160,10 +162,10 @@ def plot_case(uid, title, filename, note):
 
     fig, axes = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
     # 위: 원본(비정규화) 센서 원자료 중 추세성 상위 센서 2개
-    raw_g = test_raw[test_raw["unit"] == uid].sort_values("cycle")
+    raw_g = corrector.transform(test_raw[test_raw["unit"] == uid].sort_values("cycle"))
     for col in ["s4", "s11"]:
         axes[0].plot(raw_g["cycle"], raw_g[col], label=f"sensor {col}")
-    axes[0].set_ylabel("센서 원본값")
+    axes[0].set_ylabel("센서값 (운전조건 보정)" if MULTI_REGIME else "센서 원본값")
     axes[0].legend(fontsize=9)
     axes[0].set_title(f"엔진 #{uid} 센서 추이")
 
@@ -185,6 +187,7 @@ plot_case(
     int(danger_case.unit),
     f"위험한 오류 사례 (엔진 #{int(danger_case.unit)}): 실제보다 RUL을 과대예측",
     "error_case_danger.png",
+    ("" if DATASET == "FD001" else "[FD001 기준으로 쓴 해석 — 이 데이터셋에서는 그래프를 보고 다시 확인할 것]\n") +
     "원인 추정: 이 엔진은 관측이 끊기는 마지막 시점까지도 s4/s11 등 주요 센서의\n"
     "열화 신호가 아직 뚜렷하게 나타나지 않아, 모델이 '초기 정상 구간'으로 오판했을 가능성이 큽니다.",
 )
@@ -192,6 +195,7 @@ plot_case(
     int(conservative_case.unit),
     f"보수적 오류 사례 (엔진 #{int(conservative_case.unit)}): 실제보다 RUL을 과소예측",
     "error_case_conservative.png",
+    ("" if DATASET == "FD001" else "[FD001 기준으로 쓴 해석 — 이 데이터셋에서는 그래프를 보고 다시 확인할 것]\n") +
     "원인 추정: 이 엔진은 실제 열화 속도가 학습 데이터의 '평균적인 열화 속도'보다\n"
     "느린 개체인데, 모델이 관측된 센서 패턴을 다른(더 빨리 고장난) 엔진들과 비슷하다고\n"
     "판단해 RUL을 실제보다 짧게 예측했을 가능성이 큽니다.",
