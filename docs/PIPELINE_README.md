@@ -12,7 +12,8 @@ sentinel_project/
     04_train_lstm.py         모델 2: LSTM
     05_evaluate.py             모델 비교 + 오류 사례 분석
     06_domain_interpretation.py 도메인 해석 (센서 중요도)
-    07_export_dashboard.py       대시보드용 데이터 export
+    07_export_dashboard.py       대시보드용 데이터 export (JSON)
+    08_export_dashboard_ts.py     대시보드 레포가 실제로 읽는 mock.ts 생성
   outputs/
     figures/             그래프 이미지 (EDA, 모델비교, 오류사례, 피처중요도)
     metrics/              모델별 성능 수치(json/csv), 예측값(csv)
@@ -35,7 +36,10 @@ python scripts/04_train_lstm.py        # 약 2~3분 소요 (80 epoch 학습)
 python scripts/05_evaluate.py
 python scripts/06_domain_interpretation.py
 python scripts/07_export_dashboard.py
+python scripts/08_export_dashboard_ts.py   # 대시보드용 mock.ts 생성 (torch 불필요)
 ```
+08번이 만든 `outputs/dashboard_data/mock.ts`를 대시보드 레포의 `src/data/mock.ts`로 복사하면
+대시보드에 반영됩니다.
 필요 패키지: `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `torch`, `joblib`
 (전부 `pip install` 로 설치 가능)
 

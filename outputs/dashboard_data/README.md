@@ -3,8 +3,9 @@
 > 5조 "감시자들" Sentinel 프로젝트 — 대시보드 저장소(`posco-knda/5_Sentinel_dashboard`)에
 > 이 폴더의 파일들을 그대로 연결하거나, 백엔드 API 응답을 아래 구조에 맞춰 구현하면 됩니다.
 >
-> **참고**: 이 세션에서는 해당 GitHub 저장소에 접근 권한이 없어 코드를 직접 커밋/PR
-> 하지 못했습니다. 담당자가 레포에 파일을 복사하거나 참고해서 구현해 주세요.
+> **참고**: 현재 대시보드는 아래 JSON을 직접 읽지 않고, 이 JSON들로부터
+> `scripts/08_export_dashboard_ts.py`가 만든 `mock.ts`를 `src/data/mock.ts`로 복사해서 씁니다.
+> 아래 스키마는 나중에 백엔드 API로 바꿀 때의 참고용입니다.
 
 ## 1. `model_comparison.json`
 모델 성능 비교 탭에 사용. 레코드 배열, 필드:
