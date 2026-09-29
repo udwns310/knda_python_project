@@ -4,11 +4,9 @@
 목적: 5조 웹 대시보드(https://github.com/posco-knda/5_Sentinel_dashboard)에서 바로
 불러다 쓸 수 있는 형태로 예측 결과를 정리해서 내보냅니다.
 
-※ 안내: 이 세션에서는 해당 GitHub 저장소에 접근 권한이 없어서 (private 레포이거나
-이 계정에 연결이 안 되어 있는 것으로 보입니다) 코드를 직접 그 레포에 커밋/PR하지는
-못했습니다. 대신 대시보드 프론트엔드가 "이런 구조의 JSON/CSV 파일을 읽으면 된다"는
-것을 명확한 스키마로 문서화해서(README.md) 데이터 파일들과 함께 전달합니다. 담당자가
-레포에 그대로 복사해 넣거나, API 응답 형태를 이 스키마에 맞춰 구현하면 됩니다.
+※ 안내: 대시보드가 실제로 읽는 파일(mock.ts)은 이 스크립트가 만든 JSON을 바탕으로
+08_export_dashboard_ts.py가 생성합니다. 여기서 만드는 JSON과 스키마 문서(README.md)는
+나중에 백엔드 API로 바꿀 때 응답 형태의 기준으로도 쓸 수 있습니다.
 
 내보내는 파일 (outputs/dashboard_data/):
   1. model_comparison.json     — 모델별 성능 비교 (대시보드의 "모델 성능" 탭용)
@@ -27,33 +25,12 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from common import (
     load_raw, add_rul_labels, split_engines, Normalizer, RUL_CLIP_VALUE,
+    risk_level,  # 위험도 등급 구간 [임의 설정값 #7]은 common.py 7번 섹션에 있습니다.
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
 from common import DATA, OUT_METRICS, OUT_DASH, OUT_MODELS
 os.makedirs(f"{OUT_DASH}/engine_timeseries", exist_ok=True)
-
-# ---------------------------------------------------------------------------
-# [임의 설정값 #6] 위험도 등급 구간
-# ---------------------------------------------------------------------------
-# 예측된 RUL(잔존수명, 단위: cycle)을 대시보드에서 신호등처럼 바로 보여주기 위해
-# 3단계 등급으로 나눕니다. 실제 정비 리드타임(부품 주문~정비 완료까지 걸리는 기간)
-# 데이터가 아직 없어서, 우선은 "정비 계획을 세우는 데 통상적으로 필요한 기간"을
-# 상식적으로 가정해 구간을 나눴습니다. 이 값은 나중에 실제 현업 정비 리드타임
-# 정보를 팀에서 얻으면 그 값으로 교체하는 것을 강력히 추천합니다 (지금은 "일단
-# 보여줄 수 있는" 합리적 추정치입니다).
-#   위험(RED): 예측 RUL < 20 사이클  → 정비 일정을 지금 당장 잡아야 하는 수준
-#   주의(YELLOW): 20 ~ 60 사이클     → 정비 계획을 슬슬 준비해야 하는 수준
-#   정상(GREEN): 60 사이클 초과      → 당장은 여유 있는 수준
-RISK_THRESHOLDS = {"red_below": 20, "yellow_below": 60}
-
-
-def risk_level(rul_pred: float) -> str:
-    if rul_pred < RISK_THRESHOLDS["red_below"]:
-        return "RED"
-    elif rul_pred < RISK_THRESHOLDS["yellow_below"]:
-        return "YELLOW"
-    return "GREEN"
 
 
 # ---------------------------------------------------------------------------
