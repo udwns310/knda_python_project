@@ -1,0 +1,15 @@
+{
+  "model": "naive_baseline",
+  "description": "학습 엔진 평균수명(M) - 현재사이클, 0~125로 클리핑. 센서 미사용.",
+  "mean_life_train": 209.7375,
+  "validation": {
+    "MAE": 14.679471703011421,
+    "RMSE": 23.960298437965477,
+    "NASA_score": 168180.6574894383
+  },
+  "official_test": {
+    "MAE": 28.0795,
+    "RMSE": 36.62420284968671,
+    "NASA_score": 22964.083373904927
+  }
+}

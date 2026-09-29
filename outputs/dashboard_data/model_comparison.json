@@ -1,0 +1,29 @@
+[
+  {
+    "model":"naive_baseline",
+    "val_MAE":14.679471703,
+    "val_RMSE":23.960298438,
+    "val_NASA":168180.6574894383,
+    "test_MAE":28.0795,
+    "test_RMSE":36.6242028497,
+    "test_NASA":22964.0833739049
+  },
+  {
+    "model":"random_forest",
+    "val_MAE":11.9037244473,
+    "val_RMSE":17.2709039553,
+    "val_NASA":44331.9523768894,
+    "test_MAE":14.1920745684,
+    "test_RMSE":19.8710210782,
+    "test_NASA":1275.7789668897
+  },
+  {
+    "model":"lstm_seq2seq",
+    "val_MAE":10.0091657639,
+    "val_RMSE":13.6215648651,
+    "val_NASA":13685.0234375,
+    "test_MAE":10.8365210819,
+    "test_RMSE":14.7674492004,
+    "test_NASA":288.5572736159
+  }
+]

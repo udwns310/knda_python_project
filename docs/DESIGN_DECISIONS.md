@@ -1,0 +1,146 @@
+# 설계 결정 근거 로그 (DESIGN DECISIONS)
+
+5조 "감시자들" Sentinel 프로젝트 — 터보팬 엔진(C-MAPSS FD001) 잔존수명(RUL) 예측 파이프라인.
+작성일: 2026-09-28 / 작성: Claude (팀 요청으로 파이프라인 전체를 단독 진행)
+
+이 문서는 **"담당자가 임의로 정해야 하는 값은 근거를 반드시 남긴다"**는 팀 요청에 따라,
+코드 안에서 "임의 설정값"이라고 표시한 모든 값의 근거를 한곳에 모아 정리한 문서입니다.
+각 항목의 더 상세한 설명은 실제 코드(`scripts/common.py` 등)의 주석에도 동일하게
+적혀 있으니, 코드를 볼 때 같이 참고하세요.
+
+---
+
+## 0. 요약 결과 (먼저 보고 싶은 분들을 위해)
+
+| 모델 | 공식 test MAE (cycle) | 공식 test RMSE | NASA score | 비고 |
+|---|---|---|---|---|
+| 나이브 베이스라인 | 28.08 | 36.62 | 22,964 | 센서 미사용, 평균수명-현재사이클만 사용 |
+| Random Forest | 14.19 | 19.87 | 1,276 | 베이스라인 대비 오차 49% 감소 |
+| **LSTM (최종 채택)** | **10.84** | **14.77** | **289** | 베이스라인 대비 오차 **61.4%** 감소 |
+
+- MAE(Mean Absolute Error): 예측이 평균적으로 몇 사이클 틀렸는지. 예) LSTM MAE 10.84 =
+  "평균적으로 실제 잔존수명보다 약 11사이클(운행) 정도 오차 범위 안에서 예측한다."
+- NASA score: 낮을수록 좋음. "위험하게 늦게 예측하는 것"에 훨씬 큰 벌점을 주는 채점식이라,
+  MAE/RMSE보다 실제 설비 운영 리스크를 더 잘 반영합니다. baseline→LSTM으로 오면서
+  22,964 → 289로 거의 80분의 1 수준까지 줄었다는 것은, 단순히 "평균적으로 잘 맞다"를
+  넘어서 "위험한 방향으로 크게 틀리는 경우"가 확 줄었다는 뜻입니다.
+- 세 모델 모두 같은 100개 test 엔진, 같은 평가 방식으로 측정했기 때문에 공정하게 비교
+  가능합니다. (재현 방법: `scripts/` 폴더를 01→07 순서로 실행)
+
+---
+
+## 1. 왜 이 순서/구조로 만들었는가
+
+부트캠프 8단계(문제정의→데이터이해→전처리·기초분석→시계열분석→모델링→평가·오류분석→
+도메인해석→문서화)를 그대로 따라, `scripts/01_eda.py` ~ `scripts/07_export_dashboard.py`
+로 번호를 매겨 구현했습니다. 모든 스크립트는 `scripts/common.py`의 함수를 공유해서 쓰기
+때문에, "전처리 방식이 스크립트마다 미묘하게 달라지는" 실수를 원천적으로 막았습니다.
+
+---
+
+## 2. 임의 설정값과 근거 (코드에 나온 순서대로)
+
+### 임의 설정값 #1 — 상수 센서 제거 기준: `표준편차 < 0.01`
+- **왜 필요한가**: FD001은 운전조건이 1가지뿐이라 일부 센서/운전설정이 사실상 안 움직임.
+  안 움직이는 컬럼을 넣으면 학습에 도움이 안 되고, z-score 정규화 시 0에 가까운 값으로
+  나눠서 계산이 불안정해질 위험이 있음.
+- **근거**: train 데이터의 모든 센서 표준편차를 정렬해보면 os2(0.0003)~os1(0.0022) 그룹과
+  s15(0.0375) 이후 그룹 사이에 약 15배의 뚜렷한 공백이 있음. 그 사이값인 0.01을 기준으로
+  선택.
+- **결과**: `s1, s5, s6, s10, s16, s18, s19, os1, os2, os3` (10개) 제거, 14개 센서 사용.
+  이 목록은 C-MAPSS FD001을 다룬 여러 논문(Saxena et al. 2008 PHM Challenge, Heimes 2008)
+  에서 "정보 없는 센서"로 분류하는 목록과 정확히 일치함 — 데이터 자체의 물리적 특성에서
+  나온 결과이지 자의적 선택이 아님.
+
+### 임의 설정값 #2 — RUL 라벨 클리핑 값: `125 cycle`
+- **왜 필요한가**: 엔진 가동 초반(정상 상태)에는 센서로 구분이 안 되는데 정답 RUL만
+  계속 달라지면, 모델이 초반부에서 억지로 그럴듯한 숫자를 맞추려다 정작 중요한 고장
+  임박 구간의 학습 품질이 떨어짐. 그래서 "일정 값 이상은 다 같은 값으로 자르는"
+  piecewise-linear RUL을 씀.
+- **참고자료 활용**: MathWorks "Sequence-to-Sequence Regression Using Deep Learning"
+  ([링크](https://www.mathworks.com/help/deeplearning/ug/sequence-to-sequence-regression-using-deep-learning.html))
+  이 정확히 이 방식을 쓰며, 원문 예제는 150을 클리핑 값으로 사용.
+- **150이 아니라 125로 조정한 이유**: 우리 train 데이터에서 가장 짧은 엔진 수명이
+  128 사이클(EDA로 실측 확인). 150을 그대로 쓰면 이 엔진은 "평평한 구간"이 단 한 번도
+  나타나지 않아 다른 엔진들과 학습 신호가 어긋남. 그래서 최소 수명(128)보다 확실히
+  작은 125로 조정. 125는 동시에 C-MAPSS FD001을 다루는 다수 논문의 표준값이기도 함.
+
+### 임의 설정값 #3 — RF용 롤링 윈도우 크기: `15 cycle`
+- **왜 필요한가**: 표 기반 모델(RF)은 "지금 값"만 보면 흔들림인지 추세인지 구분 못함.
+  최근 N사이클의 평균/표준편차/기울기를 피처로 추가해야 함.
+- **근거**: 최소 엔진 수명 128 사이클을 고려해, 너무 크면(예: 50) 짧은 엔진의 학습
+  샘플이 상당수 손실되고, 너무 작으면(예: 3~5) 노이즈에 민감해짐. 15는 128사이클
+  엔진도 100개 넘는 유효 샘플을 남기면서 추세를 볼 수 있는 절충값.
+- **개선 여지**: 시간이 되면 5/10/15/20으로 바꿔가며 validation MAE를 비교하는 것을
+  추천 (`common.py`의 `ROLLING_WINDOW` 상수 하나만 바꾸면 됨).
+
+### 임의 설정값 #4 — train/validation 분할: 엔진 단위 80:20, seed=42
+- **왜 엔진 단위로 나누는가**: 한 엔진 안에서 앞부분train/뒷부분validation으로 나누면
+  같은 엔진 정보가 양쪽에 섞여 "이미 아는 엔진의 미래를 맞추는" 상황이 되어 실제
+  신규 엔진에 대한 일반화 성능을 과대평가하게 됨. 그래서 100개 엔진 중 일부를
+  통째로 validation으로 떼어냄 (완전히 처음 보는 엔진처럼 평가).
+- **80:20, seed=42**: 100개뿐인 엔진 수를 고려해 validation이 너무 작지도(불안정),
+  너무 크지도(학습 데이터 부족) 않게 20개로 설정. seed=42는 재현성을 위한 고정값
+  (관례적으로 많이 쓰는 시드, 특별한 의미는 없음). baseline/RF/LSTM 세 모델 모두
+  **완전히 동일한 20개 엔진**을 validation으로 써서 공정하게 비교했습니다.
+
+### 임의 설정값 #5 — Random Forest 하이퍼파라미터
+- **방법**: 감으로 정하지 않고, 후보 4가지(n_estimators/max_depth 조합)를 실제로
+  학습시켜 validation MAE로 비교함 (`scripts/03_train_rf.py`의 `candidates` 리스트).
+
+  | n_estimators | max_depth | val MAE |
+  |---|---|---|
+  | 100 | 8 | 12.31 |
+  | 200 | 10 | 12.02 |
+  | 300 | 12 | 11.94 |
+  | **300** | **None(제한없음)** | **11.90 (최종 선택)** |
+- **min_samples_leaf=5**: 잎 노드가 너무 잘게 쪼개져 과적합하는 것을 막기 위한
+  통상적인 안전장치.
+
+### 임의 설정값 #6 — LSTM 구조/학습 설정
+- **참고자료 활용**: MathWorks "Sequence-to-Sequence Regression Using Deep Learning"
+  ([링크](https://www.mathworks.com/help/deeplearning/ug/sequence-to-sequence-regression-using-deep-learning.html))
+  의 구조를 그대로 채택: LSTM hidden units=200, FC layer=50, dropout=0.5, Adam
+  optimizer, gradient clip threshold=1, mini-batch=20, epoch=80.
+- **PyTorch로 구현하며 바꾼 부분**: MATLAB Deep Learning Toolbox는 가변 길이 시퀀스를
+  left-padding으로 처리하지만, 우리는 PyTorch의 표준 방식인 right-padding +
+  `pack_padded_sequence`(패딩 위치가 학습에 전혀 영향을 주지 않도록 마스킹하는
+  PyTorch 내장 기능)를 사용. 효과는 동일(패딩이 손실 계산에서 제외됨), 구현 방식만
+  각 프레임워크의 관례를 따름. 자세한 항목별 대조표는 `scripts/04_train_lstm.py`
+  최상단 주석 참고.
+- **타깃 스케일링**: 원문은 "symmetric rescaling"이라는 MATLAB 자동 기능을 씀. 우리는
+  RUL을 0~1로 나눠서(÷125) 학습하고 예측값에 다시 125를 곱하는 단순한 min-max
+  스케일링으로 구현. 개념(정답 스케일을 작게 만들어 학습을 안정화)은 동일, 구현만
+  단순화.
+- **80 epoch가 적절한지 확인**: 학습 로그 상 train MSE(정규화 스케일)가 0.496(1epoch)
+  → 0.031(80epoch)까지 계속 감소했고, 246초(약 4분) 안에 끝나 시간 여유가 있었음.
+
+### 임의 설정값 #7 — 대시보드 위험도 등급 임계값 (RED<20, YELLOW 20~60, GREEN>60)
+- **왜 필요한가**: 대시보드에서 예측 RUL 숫자를 바로 신호등(빨강/노랑/초록)으로
+  보여주기 위함.
+- **근거**: 실제 정비 리드타임(부품 주문~정비 완료까지 걸리는 기간) 데이터가 없어서,
+  "정비 계획을 세우는 데 통상적으로 필요한 기간"을 상식적으로 가정한 잠정값입니다.
+  **팀에서 실제 정비팀 리드타임 정보를 얻으면 반드시 이 값으로 교체할 것을 추천**
+  (`scripts/07_export_dashboard.py`의 `RISK_THRESHOLDS`만 바꾸면 됨).
+
+---
+
+## 3. 참고자료 활용 내역 정리
+
+| 참고자료 | 활용한 개념 | 실제로 어떻게 썼는가 | 왜 그대로/다르게 썼는가 |
+|---|---|---|---|
+| [MathWorks: Similarity-Based RUL Estimation](https://www.mathworks.com/help/predmaint/ug/similarity-based-remaining-useful-life-estimation.html) | Trendability(추세성) 분석으로 의미있는 센서 선별 | `01_eda.py`, `06_domain_interpretation.py`에서 "센서와 사이클 번호의 상관계수"로 추세성 랭킹을 구현, RF 피처 중요도와 대조 검증 | 원문은 K-means로 운전조건(regime)을 먼저 나누는데, FD001은 운전조건이 1개뿐이라 그 단계는 생략(불필요). 핵심 아이디어(추세성 기반 센서 선별)만 우리 데이터에 맞게 단순화해서 채택 |
+| [MathWorks: Sequence-to-Sequence Regression Using Deep Learning](https://www.mathworks.com/help/deeplearning/ug/sequence-to-sequence-regression-using-deep-learning.html) | Piecewise-linear RUL 클리핑, Z-score 정규화, LSTM 구조(200 hidden/50 FC/dropout 0.5), Adam+gradient clip, batch=20/epoch=80 | `common.py`(RUL 클리핑, 정규화), `04_train_lstm.py`(모델 구조 전체) | 클리핑 값만 150→125로 데이터 특성에 맞게 조정(위 근거 #2 참고), 나머지는 원문 구조를 그대로 채택. 가변 길이 시퀀스 처리 방식만 MATLAB→PyTorch 관례 차이로 구현 방법이 다름(효과는 동일) |
+
+---
+
+## 4. 알려진 한계 / 다음에 개선하면 좋을 점
+1. **롤링 윈도우 크기(15)와 위험도 임계값은 검증된 최적값이 아니라 합리적 추정치**입니다.
+   시간이 되면 팀에서 다른 값과 비교해보는 것을 추천합니다.
+2. LSTM이 가장 좋은 성능을 보였지만, 학습 데이터가 80개 엔진뿐이라 더 많은 데이터
+   (혹은 FD002~4의 다른 운전조건 데이터를 추가)가 있다면 성능이 더 좋아질 가능성이 큽니다.
+3. `engines_summary.json`의 `true_RUL_for_validation_only` 필드는 검증용으로만 쓰고,
+   실제 배포/발표 데모에서는 "정답을 모르는 상태에서 예측한다"는 점을 명확히 보여줘야 합니다.
+4. 대시보드 저장소(`posco-knda/5_Sentinel_dashboard`)에 이번 세션에서는 접근 권한이 없어
+   직접 커밋하지 못했습니다 — `outputs/dashboard_data/README.md`의 스키마를 참고해
+   담당자가 직접 연동해주세요.
