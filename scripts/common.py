@@ -16,24 +16,57 @@ Sentinel 프로젝트(터보팬 엔진 RUL 예측) 전 과정에서 공통으로
   같은 항목명으로 다시 정리되어 있고, 근거도 그쪽에 자세히 적었습니다.
 """
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.font_manager as fm
 
+# ---------------------------------------------------------------------------
+# 0. 폴더 경로 (모든 스크립트가 여기서 가져다 씀)
+# ---------------------------------------------------------------------------
+# 경로를 "/home/claude/..." 같은 특정 컴퓨터의 절대경로로 적어두면 다른 팀원 PC
+# (Windows/Mac)에서는 실행이 안 됩니다. 그래서 "이 파일(common.py)이 있는 위치"를
+# 기준으로 프로젝트 폴더를 계산합니다:
+#   common.py 위치 = <프로젝트>/scripts/common.py  →  한 단계 위 = <프로젝트>
+# 이렇게 하면 레포를 어디에 clone하든, 어느 폴더에서 실행하든 똑같이 동작합니다.
+# (문자열로 바꿔두는 이유: 기존 코드가 f"{DATA}/train_FD001.txt"처럼 문자열로
+#  이어 붙여 쓰고 있어서, 그 코드를 그대로 쓸 수 있게 하기 위함입니다.)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA = str(PROJECT_ROOT / "data")
+OUT_FIG = str(PROJECT_ROOT / "outputs" / "figures")
+OUT_METRICS = str(PROJECT_ROOT / "outputs" / "metrics")
+OUT_MODELS = str(PROJECT_ROOT / "outputs" / "models")
+OUT_DASH = str(PROJECT_ROOT / "outputs" / "dashboard_data")
+
+# 결과를 저장할 폴더가 없으면 미리 만들어 둡니다. 특히 outputs/models는 학습된 모델
+# 파일(용량이 큼)이라 레포에 올라가 있지 않아서, 처음 clone한 사람은 이 폴더가 없습니다.
+for _d in (OUT_FIG, OUT_METRICS, OUT_MODELS, OUT_DASH):
+    Path(_d).mkdir(parents=True, exist_ok=True)
+
 # 그래프에 한글(엔진/센서 이름 설명, 제목 등)이 깨지지 않고 나오도록 한글 폰트를
 # 지정합니다. 이 설정을 common.py에 한 번만 넣어두면, common.py를 import하는
 # 모든 스크립트(01_eda.py, 02_baseline.py, ...)에 자동으로 적용됩니다.
-# (시스템에는 Noto Sans CJK가 설치되어 있는데, matplotlib이 자동으로 못 찾는 경우가
-#  있어서 폰트 파일 경로를 직접 등록합니다. 한글/일본어/중국어 글자를 다 포함하는
-#  통합 CJK 폰트라 "JP"라는 이름이 붙어 있어도 한글이 정상적으로 표시됩니다.)
-_CJK_FONT_PATH = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
-try:
-    fm.fontManager.addfont(_CJK_FONT_PATH)
-    _cjk_name = fm.FontProperties(fname=_CJK_FONT_PATH).get_name()
-    matplotlib.rcParams["font.family"] = _cjk_name
-except Exception:
-    pass
+# 팀원마다 운영체제가 달라서, 각 OS에 기본으로 깔려 있는 한글 폰트를 순서대로
+# 찾아보고 처음 발견되는 것을 씁니다:
+#   Windows → 맑은 고딕(Malgun Gothic), Mac → Apple SD Gothic Neo / AppleGothic,
+#   Linux → Noto Sans CJK (한글/일본어/중국어 통합 폰트라 "JP"라는 이름이 붙어
+#   있어도 한글이 정상적으로 표시됨), 나눔고딕(NanumGothic)
+_KOREAN_FONTS = [
+    "Malgun Gothic", "Apple SD Gothic Neo", "AppleGothic",
+    "Noto Sans CJK KR", "Noto Sans CJK JP", "NanumGothic",
+]
+# Linux에서는 Noto Sans CJK가 설치돼 있어도 matplotlib이 자동으로 못 찾는 경우가
+# 있어서, 파일이 있으면 경로를 직접 등록해둡니다 (없으면 그냥 건너뜀).
+_CJK_FONT_PATH = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
+if _CJK_FONT_PATH.exists():
+    fm.fontManager.addfont(str(_CJK_FONT_PATH))
+_installed = {f.name for f in fm.fontManager.ttflist}
+for _name in _KOREAN_FONTS:
+    if _name in _installed:
+        matplotlib.rcParams["font.family"] = _name
+        break
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 # ---------------------------------------------------------------------------

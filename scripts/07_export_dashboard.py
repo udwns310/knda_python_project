@@ -19,7 +19,6 @@
 """
 
 import sys, json, os
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 import torch
@@ -30,10 +29,8 @@ from common import (
     load_raw, add_rul_labels, split_engines, Normalizer, RUL_CLIP_VALUE,
 )
 
-DATA = "/home/claude/sentinel_project/data"
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
-OUT_DASH = "/home/claude/sentinel_project/outputs/dashboard_data"
-OUT_MODELS = "/home/claude/sentinel_project/outputs/models"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS, OUT_DASH, OUT_MODELS
 os.makedirs(f"{OUT_DASH}/engine_timeseries", exist_ok=True)
 
 # ---------------------------------------------------------------------------

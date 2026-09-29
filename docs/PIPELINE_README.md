@@ -25,18 +25,22 @@ sentinel_project/
 
 ## 실행 방법
 반드시 번호 순서대로 실행하세요 (뒤 스크립트가 앞 단계 결과를 재사용합니다).
+폴더 경로는 `scripts/common.py`가 자동으로 계산하므로, 레포를 어디에 clone했든
+어느 폴더에서 실행하든 상관없습니다. (Mac/Linux에서는 `python` 대신 `python3`)
 ```bash
-cd scripts
-python3 01_eda.py
-python3 02_baseline.py
-python3 03_train_rf.py          # 약 4분 소요 (하이퍼파라미터 후보 4개 비교 포함)
-python3 04_train_lstm.py        # 약 2~3분 소요 (80 epoch 학습)
-python3 05_evaluate.py
-python3 06_domain_interpretation.py
-python3 07_export_dashboard.py
+python scripts/01_eda.py
+python scripts/02_baseline.py
+python scripts/03_train_rf.py          # 약 4분 소요 (하이퍼파라미터 후보 4개 비교 포함)
+python scripts/04_train_lstm.py        # 약 2~3분 소요 (80 epoch 학습)
+python scripts/05_evaluate.py
+python scripts/06_domain_interpretation.py
+python scripts/07_export_dashboard.py
 ```
 필요 패키지: `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `torch`, `joblib`
 (전부 `pip install` 로 설치 가능)
+
+`outputs/models/`(학습된 모델 파일)는 용량 때문에 레포에 올리지 않습니다. 03·04번을
+실행하면 자동으로 생성되고, 05·07번은 이 파일이 있어야 돌아갑니다.
 
 ## 각 사람이 자기 파트를 이어받으려면
 - **데이터/센서 관련 질문**: `scripts/common.py` 상단 주석 + `docs/DESIGN_DECISIONS.md`

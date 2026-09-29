@@ -14,12 +14,11 @@
 """
 
 import sys, json
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import pandas as pd
 import matplotlib.pyplot as plt
 
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
-OUT_FIG = "/home/claude/sentinel_project/outputs/figures"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS, OUT_FIG
 
 # NASA C-MAPSS 데이터 설명서 기준 센서 이름 (물리적 의미) — 공개된 데이터 설명 문서에
 # 나온 표준 명칭입니다. 발표 때 "s4가 뭔데요?"라는 질문에 바로 답할 수 있게 정리.
@@ -51,7 +50,7 @@ for sensor, imp in sensor_importance.head(8).items():
 
 # EDA에서 만든 trendability 랭킹을 다시 계산 (01_eda.py와 동일 로직, 여기서 재사용)
 from common import load_raw, add_rul_labels, find_constant_columns, SENSOR_COLS_RAW
-train = add_rul_labels(load_raw("/home/claude/sentinel_project/data/train_FD001.txt"))
+train = add_rul_labels(load_raw(f"{DATA}/train_FD001.txt"))
 const_cols = find_constant_columns(train)
 active_sensors = [c for c in SENSOR_COLS_RAW if c not in const_cols]
 trend_corr = {c: abs(train[[c, "cycle"]].corr().iloc[0, 1]) for c in active_sensors}

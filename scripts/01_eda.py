@@ -15,7 +15,6 @@
 """
 
 import sys
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -26,9 +25,10 @@ from common import (
     load_raw, find_constant_columns, add_rul_labels, SENSOR_COLS_RAW,
 )
 
-OUT_FIG = "/home/claude/sentinel_project/outputs/figures"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_FIG
 
-train = load_raw("/home/claude/sentinel_project/data/train_FD001.txt")
+train = load_raw(f"{DATA}/train_FD001.txt")
 train = add_rul_labels(train)
 
 const_cols = find_constant_columns(train)

@@ -20,7 +20,6 @@ RUL 예측은 이상탐지처럼 "맞다/틀리다"가 아니라 숫자를 맞�
 """
 
 import sys, json
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,13 +29,7 @@ from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
     Normalizer, SENSOR_COLS_RAW, RUL_CLIP_VALUE,
 )
-from importlib import import_module
 
-lstm_module_spec = None
-import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "train_lstm_mod", "/home/claude/sentinel_project/scripts/04_train_lstm.py"
-)
 # 04_train_lstm.py 파일을 다시 '실행'하지 않고 그 안의 RULLSTM 클래스 정의만
 # 재사용하기 위해 클래스만 이 파일에 동일하게 다시 선언합니다 (04번 스크립트를
 # import하면 그 안의 학습 코드가 통째로 다시 실행돼버리므로, 클래스 정의만
@@ -63,10 +56,8 @@ class RULLSTM(nn.Module):
         return out.squeeze(-1)
 
 
-DATA = "/home/claude/sentinel_project/data"
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
-OUT_FIG = "/home/claude/sentinel_project/outputs/figures"
-OUT_MODELS = "/home/claude/sentinel_project/outputs/models"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS, OUT_FIG, OUT_MODELS
 
 # ---------------------------------------------------------------------------
 # 1. 세 모델 성능 비교표

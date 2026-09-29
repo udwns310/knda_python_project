@@ -22,7 +22,6 @@
 """
 
 import sys, json
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 
@@ -31,8 +30,8 @@ from common import (
     mae, rmse, nasa_score,
 )
 
-DATA = "/home/claude/sentinel_project/data"
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 로드 + train/validation 엔진 분할 (common.py의 split_engines 사용 —

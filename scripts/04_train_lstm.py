@@ -28,7 +28,6 @@
 """
 
 import sys, json, time
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 import torch
@@ -40,9 +39,8 @@ from common import (
     Normalizer, SENSOR_COLS_RAW, RUL_CLIP_VALUE, mae, rmse, nasa_score,
 )
 
-DATA = "/home/claude/sentinel_project/data"
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
-OUT_MODELS = "/home/claude/sentinel_project/outputs/models"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS, OUT_MODELS
 
 torch.manual_seed(42)  # 재현성을 위한 시드 고정 (RF와 마찬가지로 42 사용 — 팀 전체 관례)
 

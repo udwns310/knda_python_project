@@ -17,7 +17,6 @@
 """
 
 import sys, json, time
-sys.path.insert(0, "/home/claude/sentinel_project/scripts")
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
@@ -29,9 +28,8 @@ from common import (
     mae, rmse, nasa_score,
 )
 
-DATA = "/home/claude/sentinel_project/data"
-OUT_METRICS = "/home/claude/sentinel_project/outputs/metrics"
-OUT_MODELS = "/home/claude/sentinel_project/outputs/models"
+# 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
+from common import DATA, OUT_METRICS, OUT_MODELS
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 준비 (baseline과 완전히 동일한 분할을 재사용 — common.py의 seed=42
