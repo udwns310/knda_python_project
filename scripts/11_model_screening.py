@@ -87,6 +87,7 @@ def reg_row(name, kind, p_val, p_test, seconds):
 # 2. 회귀 후보
 # ---------------------------------------------------------------------------
 reg_rows = []
+reg_preds = {}  # 모델 이름 → (validation 예측, test 예측) — 아래 4번 오탐·미탐율 계산에 사용
 tabular = {
     "Ridge (선형회귀)": Ridge(alpha=1.0),
     "ExtraTrees": ExtraTreesRegressor(n_estimators=300, min_samples_leaf=5, random_state=SEED, n_jobs=-1),
@@ -96,18 +97,24 @@ tabular = {
 for name, model in tabular.items():
     t0 = time.time()
     model.fit(Xtr, ytr)
-    clip = lambda p: np.clip(p, 0, 125)
-    reg_rows.append(reg_row(name, "표 형태", clip(model.predict(Xva)), clip(model.predict(Xte)), time.time() - t0))
+    p_val, p_test = np.clip(model.predict(Xva), 0, 125), np.clip(model.predict(Xte), 0, 125)
+    reg_preds[name] = (p_val, p_test)
+    reg_rows.append(reg_row(name, "표 형태", p_val, p_test, time.time() - t0))
     print(f"  {name}: val MAE {reg_rows[-1]['val_MAE']}, test MAE {reg_rows[-1]['test_MAE']} ({reg_rows[-1]['seconds']}초)")
 
-# 03·04번에서 이미 학습·평가한 RandomForest, LSTM은 그 결과를 그대로 씀 (같은 분할·정규화)
-for name, kind, fname in (("RandomForest (03번)", "표 형태", "rf"), ("LSTM (04번)", "시계열", "lstm")):
+# 02·03·04번에서 이미 학습·평가한 베이스라인, RandomForest, LSTM은 그 결과를 그대로 씀 (같은 분할·정규화)
+for name, kind, fname in (("베이스라인 (02번, 센서 미사용)", "기준", "baseline"),
+                          ("RandomForest (03번)", "표 형태", "rf"), ("LSTM (04번)", "시계열", "lstm")):
     with open(f"{OUT_METRICS}/{fname}_metrics.json", encoding="utf-8") as f:
         m = json.load(f)
     v, t = m["validation"], m["official_test"]
     reg_rows.append({"model": name, "type": kind, "val_MAE": round(v["MAE"], 2), "val_RMSE": round(v["RMSE"], 2),
                      "test_MAE": round(t["MAE"], 2), "test_RMSE": round(t["RMSE"], 2),
                      "test_NASA": round(t["NASA_score"], 1), "seconds": None})
+    pv = val_feat[["unit", "cycle"]].merge(pd.read_csv(f"{OUT_METRICS}/{fname}_val_predictions.csv"),
+                                           on=["unit", "cycle"], how="left")["RUL_pred"].to_numpy()
+    pt = pd.read_csv(f"{OUT_METRICS}/{fname}_test_predictions.csv").set_index("unit").loc[y_test.index, "RUL_pred"].to_numpy()
+    reg_preds[name] = (pv, pt)
 
 train_seqs, train_labels, _ = engine_sequences(train_df, sensors)
 val_seqs, val_labels, _ = engine_sequences(val_df, sensors)
@@ -123,9 +130,9 @@ for name, fit, predict in (
     model = fit()
     p_val = np.concatenate([predict(model, s) for s in val_seqs])
     p_test = np.array([predict(model, test_seqs[i])[-1] for i in order])
-    y_val_seq = np.concatenate([l.numpy() * 125 for l in val_labels])
+    # 엔진 번호·사이클 순서로 이어 붙였으므로 validation 특성 표(val_feat)와 행 순서가 같음
+    reg_preds[name] = (p_val, p_test)
     row = reg_row(name, "시계열", p_val, p_test, time.time() - t0)
-    row["val_MAE"], row["val_RMSE"] = round(mae(y_val_seq, p_val), 2), round(rmse(y_val_seq, p_val), 2)
     reg_rows.append(row)
     print(f"  {name}: val MAE {row['val_MAE']}, test MAE {row['test_MAE']} ({row['seconds']}초)")
 
@@ -183,15 +190,41 @@ cls_res = pd.DataFrame(cls_rows).sort_values("val_F1", ascending=False)
 cls_res.to_csv(f"{OUT_METRICS}/model_screening_classification.csv", index=False, encoding="utf-8-sig")
 
 # ---------------------------------------------------------------------------
-# 4. 그림 + 출력
+# 4. 회귀 모델을 "경보"로 썼을 때의 오탐율·미탐율 (예측 RUL ≤ 30 이면 위험 경보)
+# ---------------------------------------------------------------------------
+# 같은 MAE라도 "위험을 놓치는 쪽으로 틀리는지, 괜히 경보하는 쪽으로 틀리는지"는 다를 수 있어서,
+# 회귀 예측을 대시보드 신호등(빨간불 = 예측 RUL ≤ 30)처럼 썼을 때 얼마나 틀리는지 계산합니다.
+#   미탐율 = 실제 위험인데 경보를 못 한 비율      = FN / (TP + FN)   (= 1 − Recall, 낮을수록 좋음)
+#   오탐율 = 실제 정상인데 경보를 울린 비율       = FP / (FP + TN)   (낮을수록 좋음)
+#   헛경보 비율 = 울린 경보 중 틀린 경보의 비율   = FP / (TP + FP)   (= 1 − Precision)
+def alarm_rates(y_true_rul, p_rul):
+    t, p = np.asarray(y_true_rul) <= DANGER_RUL, np.asarray(p_rul) <= DANGER_RUL
+    tp, fn, fp, tn = (t & p).sum(), (t & ~p).sum(), (~t & p).sum(), (~t & ~p).sum()
+    return {"TP": int(tp), "FN": int(fn), "FP": int(fp), "TN": int(tn),
+            "미탐율": round(fn / (tp + fn), 3), "오탐율": round(fp / (fp + tn), 3),
+            "헛경보비율": round(fp / (tp + fp), 3) if tp + fp else None}
+
+
+rate_rows = []
+for name, (pv, pt) in reg_preds.items():
+    v, t = alarm_rates(yva, pv), alarm_rates(y_test, pt)
+    mae_row = next(r for r in reg_rows if r["model"] == name)
+    rate_rows.append({"model": name, "val_MAE": mae_row["val_MAE"], "test_MAE": mae_row["test_MAE"],
+                      **{f"val_{k}": x for k, x in v.items()}, **{f"test_{k}": x for k, x in t.items()}})
+rate_res = pd.DataFrame(rate_rows).sort_values("val_미탐율")
+rate_res.to_csv(f"{OUT_METRICS}/model_screening_alarm_rates.csv", index=False, encoding="utf-8-sig")
+
+# ---------------------------------------------------------------------------
+# 5. 그림 + 출력
 # ---------------------------------------------------------------------------
 fig, axes = plt.subplots(1, 2, figsize=(13, 4.8))
 r = reg_res.sort_values("test_RMSE", ascending=False)
-axes[0].barh(r["model"], r["test_RMSE"], color=["tab:red" if "시계열" == t else "tab:blue" for t in r["type"]])
+axes[0].barh(r["model"], r["test_RMSE"],
+             color=[{"시계열": "tab:red", "기준": "tab:gray"}.get(t, "tab:blue") for t in r["type"]])
 for i, v in enumerate(r["test_RMSE"]):
     axes[0].text(v, i, f" {v:.1f}", va="center", fontsize=8)
 axes[0].set_xlabel("공식 test RMSE (cycle, 낮을수록 좋음)")
-axes[0].set_title("회귀(RUL) — 빨강: 시계열 모델 / 파랑: 표 형태 모델")
+axes[0].set_title("회귀(RUL) — 빨강: 시계열 / 파랑: 표 형태 / 회색: 기준 모델")
 c = cls_res.sort_values("val_F1")
 axes[1].barh(c["model"], c["val_F1"], color="tab:green")
 for i, v in enumerate(c["val_F1"]):
@@ -202,8 +235,12 @@ axes[1].set_title(f"분류(위험 = 잔여 ≤ {DANGER_RUL}) — 임곗값 0.5 �
 fig.suptitle(f"{DATASET} 모델 비교 (같은 분할·특성·평가, 튜닝 없음)", fontsize=11)
 fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/model_screening.png", dpi=120)
+plt.close(fig)
 
 print("\n[회귀 — test RMSE 순]")
 print(reg_res.to_string(index=False))
 print("\n[분류 — validation F1 순]")
 print(cls_res.to_string(index=False))
+print(f"\n[회귀 예측을 경보로 쓸 때 (예측 RUL ≤ {DANGER_RUL}) — validation 미탐율 순]")
+print(rate_res[["model", "val_MAE", "val_미탐율", "val_오탐율", "val_헛경보비율",
+                "test_미탐율", "test_오탐율", "test_헛경보비율"]].to_string(index=False))
