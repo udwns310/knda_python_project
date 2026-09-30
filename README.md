@@ -105,6 +105,7 @@ knda_python_project/
 │   ├── 10_cross_dataset.py         ← [추가 실험] FD001 ↔ FD004 교차 검증
 │   ├── 11_model_screening.py       ← [추가 실험] 후보 모델 비교
 │   ├── 12_seed_check.py            ← [추가 실험] 딥러닝 시드별 흔들림 확인
+│   ├── 13_threshold_cost.py        ← 위험 기준(30)의 근거: 리드타임별 정비 비용 시뮬레이션
 │   └── seq_models.py               ← 시계열 딥러닝 모델(LSTM·GRU·1D-CNN) 정의
 ├── outputs/
 │   ├── figures/             ← 그림 (EDA, 모델 비교, 혼동행렬, 오탐·미탐 사례, 센서 중요도)

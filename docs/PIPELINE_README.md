@@ -21,6 +21,7 @@ knda_python_project/
     10_cross_dataset.py          [추가 실험] FD001 ↔ FD004 교차 검증 (한 데이터로 학습 → 다른 데이터에 적용)
     11_model_screening.py        [추가 실험] 후보 모델 비교 (최종 모델 선택 근거)
     12_seed_check.py             [추가 실험] 딥러닝 결과가 시드에 따라 얼마나 흔들리는지 확인
+    13_threshold_cost.py         위험 기준 N의 보전 관점 근거: 리드타임별 운행 1사이클당 정비 비용 (몇 초)
   outputs/
     figures/             그래프 이미지 (EDA, 모델비교, 오류사례, 혼동행렬, 피처중요도)
     metrics/             모델별 성능 수치(json/csv), 예측값(csv)
@@ -62,6 +63,7 @@ python scripts/09_classification.py        # 필수 과제: 고장 임박 이진
 python scripts/10_cross_dataset.py     # FD001과 FD004 모두 03·04번을 먼저 실행해 둬야 함 (약 1분)
 python scripts/11_model_screening.py   # 후보 모델 비교 (FD001 약 5분, FD004 약 15분)
 python scripts/12_seed_check.py        # LSTM·GRU를 시드 3개로 반복 학습 (FD001 약 25분)
+python scripts/13_threshold_cost.py    # 위험 기준 30의 근거 — 리드타임별 정비 비용 (02~04번 결과 필요, 몇 초)
 ```
 추가 실험은 최종 모델을 고르고 결과를 검증하기 위한 탐색 단계입니다. 과정 진행 가이드의
 "머신러닝 모델은 최대 3종" 규칙은 보고서에 쓰는 최종 모델 기준으로 지킵니다.
