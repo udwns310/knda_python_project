@@ -1,0 +1,702 @@
+[
+  {
+    "unit": 1,
+    "last_observed_cycle": 31,
+    "predicted_RUL": 121.4,
+    "true_RUL_for_validation_only": 112.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 2,
+    "last_observed_cycle": 49,
+    "predicted_RUL": 114.1,
+    "true_RUL_for_validation_only": 98.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 3,
+    "last_observed_cycle": 126,
+    "predicted_RUL": 71.5,
+    "true_RUL_for_validation_only": 69.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 4,
+    "last_observed_cycle": 106,
+    "predicted_RUL": 81.1,
+    "true_RUL_for_validation_only": 82.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 5,
+    "last_observed_cycle": 98,
+    "predicted_RUL": 93.5,
+    "true_RUL_for_validation_only": 91.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 6,
+    "last_observed_cycle": 105,
+    "predicted_RUL": 108.8,
+    "true_RUL_for_validation_only": 93.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 7,
+    "last_observed_cycle": 160,
+    "predicted_RUL": 105.7,
+    "true_RUL_for_validation_only": 91.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 8,
+    "last_observed_cycle": 166,
+    "predicted_RUL": 101.6,
+    "true_RUL_for_validation_only": 95.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 9,
+    "last_observed_cycle": 55,
+    "predicted_RUL": 123.3,
+    "true_RUL_for_validation_only": 111.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 10,
+    "last_observed_cycle": 192,
+    "predicted_RUL": 99.6,
+    "true_RUL_for_validation_only": 96.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 11,
+    "last_observed_cycle": 83,
+    "predicted_RUL": 102.6,
+    "true_RUL_for_validation_only": 97.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 12,
+    "last_observed_cycle": 217,
+    "predicted_RUL": 105.6,
+    "true_RUL_for_validation_only": 124.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 13,
+    "last_observed_cycle": 195,
+    "predicted_RUL": 93.3,
+    "true_RUL_for_validation_only": 95.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 14,
+    "last_observed_cycle": 46,
+    "predicted_RUL": 115.3,
+    "true_RUL_for_validation_only": 107.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 15,
+    "last_observed_cycle": 76,
+    "predicted_RUL": 108.7,
+    "true_RUL_for_validation_only": 83.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 16,
+    "last_observed_cycle": 113,
+    "predicted_RUL": 104.2,
+    "true_RUL_for_validation_only": 84.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 17,
+    "last_observed_cycle": 165,
+    "predicted_RUL": 60.5,
+    "true_RUL_for_validation_only": 50.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 18,
+    "last_observed_cycle": 133,
+    "predicted_RUL": 23.0,
+    "true_RUL_for_validation_only": 28.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 19,
+    "last_observed_cycle": 135,
+    "predicted_RUL": 90.2,
+    "true_RUL_for_validation_only": 87.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 20,
+    "last_observed_cycle": 184,
+    "predicted_RUL": 16.1,
+    "true_RUL_for_validation_only": 16.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 21,
+    "last_observed_cycle": 148,
+    "predicted_RUL": 72.4,
+    "true_RUL_for_validation_only": 57.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 22,
+    "last_observed_cycle": 39,
+    "predicted_RUL": 125.0,
+    "true_RUL_for_validation_only": 111.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 23,
+    "last_observed_cycle": 130,
+    "predicted_RUL": 120.8,
+    "true_RUL_for_validation_only": 113.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 24,
+    "last_observed_cycle": 186,
+    "predicted_RUL": 19.3,
+    "true_RUL_for_validation_only": 20.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 25,
+    "last_observed_cycle": 48,
+    "predicted_RUL": 123.6,
+    "true_RUL_for_validation_only": 145.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 26,
+    "last_observed_cycle": 76,
+    "predicted_RUL": 115.7,
+    "true_RUL_for_validation_only": 119.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 27,
+    "last_observed_cycle": 140,
+    "predicted_RUL": 80.8,
+    "true_RUL_for_validation_only": 66.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 28,
+    "last_observed_cycle": 158,
+    "predicted_RUL": 103.8,
+    "true_RUL_for_validation_only": 97.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 29,
+    "last_observed_cycle": 171,
+    "predicted_RUL": 99.9,
+    "true_RUL_for_validation_only": 90.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 30,
+    "last_observed_cycle": 143,
+    "predicted_RUL": 90.8,
+    "true_RUL_for_validation_only": 115.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 31,
+    "last_observed_cycle": 196,
+    "predicted_RUL": 11.1,
+    "true_RUL_for_validation_only": 8.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 32,
+    "last_observed_cycle": 145,
+    "predicted_RUL": 39.7,
+    "true_RUL_for_validation_only": 48.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 33,
+    "last_observed_cycle": 50,
+    "predicted_RUL": 121.2,
+    "true_RUL_for_validation_only": 106.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 34,
+    "last_observed_cycle": 203,
+    "predicted_RUL": 6.9,
+    "true_RUL_for_validation_only": 7.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 35,
+    "last_observed_cycle": 198,
+    "predicted_RUL": 11.0,
+    "true_RUL_for_validation_only": 11.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 36,
+    "last_observed_cycle": 126,
+    "predicted_RUL": 25.4,
+    "true_RUL_for_validation_only": 19.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 37,
+    "last_observed_cycle": 121,
+    "predicted_RUL": 19.4,
+    "true_RUL_for_validation_only": 21.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 38,
+    "last_observed_cycle": 125,
+    "predicted_RUL": 61.7,
+    "true_RUL_for_validation_only": 50.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 39,
+    "last_observed_cycle": 37,
+    "predicted_RUL": 125.0,
+    "true_RUL_for_validation_only": 142.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 40,
+    "last_observed_cycle": 133,
+    "predicted_RUL": 31.0,
+    "true_RUL_for_validation_only": 28.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 41,
+    "last_observed_cycle": 123,
+    "predicted_RUL": 14.1,
+    "true_RUL_for_validation_only": 18.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 42,
+    "last_observed_cycle": 156,
+    "predicted_RUL": 10.5,
+    "true_RUL_for_validation_only": 10.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 43,
+    "last_observed_cycle": 172,
+    "predicted_RUL": 69.3,
+    "true_RUL_for_validation_only": 59.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 44,
+    "last_observed_cycle": 54,
+    "predicted_RUL": 114.9,
+    "true_RUL_for_validation_only": 109.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 45,
+    "last_observed_cycle": 152,
+    "predicted_RUL": 99.4,
+    "true_RUL_for_validation_only": 114.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 46,
+    "last_observed_cycle": 146,
+    "predicted_RUL": 46.3,
+    "true_RUL_for_validation_only": 47.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 47,
+    "last_observed_cycle": 73,
+    "predicted_RUL": 125.0,
+    "true_RUL_for_validation_only": 135.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 48,
+    "last_observed_cycle": 78,
+    "predicted_RUL": 106.2,
+    "true_RUL_for_validation_only": 92.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 49,
+    "last_observed_cycle": 303,
+    "predicted_RUL": 17.4,
+    "true_RUL_for_validation_only": 21.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 50,
+    "last_observed_cycle": 74,
+    "predicted_RUL": 99.9,
+    "true_RUL_for_validation_only": 79.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 51,
+    "last_observed_cycle": 144,
+    "predicted_RUL": 104.0,
+    "true_RUL_for_validation_only": 114.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 52,
+    "last_observed_cycle": 189,
+    "predicted_RUL": 27.3,
+    "true_RUL_for_validation_only": 29.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 53,
+    "last_observed_cycle": 164,
+    "predicted_RUL": 27.6,
+    "true_RUL_for_validation_only": 26.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 54,
+    "last_observed_cycle": 121,
+    "predicted_RUL": 111.6,
+    "true_RUL_for_validation_only": 97.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 55,
+    "last_observed_cycle": 113,
+    "predicted_RUL": 114.4,
+    "true_RUL_for_validation_only": 137.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 56,
+    "last_observed_cycle": 136,
+    "predicted_RUL": 15.9,
+    "true_RUL_for_validation_only": 15.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 57,
+    "last_observed_cycle": 160,
+    "predicted_RUL": 99.6,
+    "true_RUL_for_validation_only": 103.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 58,
+    "last_observed_cycle": 176,
+    "predicted_RUL": 44.7,
+    "true_RUL_for_validation_only": 37.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 59,
+    "last_observed_cycle": 94,
+    "predicted_RUL": 114.5,
+    "true_RUL_for_validation_only": 114.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 60,
+    "last_observed_cycle": 147,
+    "predicted_RUL": 100.4,
+    "true_RUL_for_validation_only": 100.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 61,
+    "last_observed_cycle": 159,
+    "predicted_RUL": 24.2,
+    "true_RUL_for_validation_only": 21.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 62,
+    "last_observed_cycle": 232,
+    "predicted_RUL": 41.0,
+    "true_RUL_for_validation_only": 54.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 63,
+    "last_observed_cycle": 155,
+    "predicted_RUL": 75.5,
+    "true_RUL_for_validation_only": 72.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 64,
+    "last_observed_cycle": 168,
+    "predicted_RUL": 24.7,
+    "true_RUL_for_validation_only": 28.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 65,
+    "last_observed_cycle": 71,
+    "predicted_RUL": 118.9,
+    "true_RUL_for_validation_only": 128.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 66,
+    "last_observed_cycle": 147,
+    "predicted_RUL": 16.5,
+    "true_RUL_for_validation_only": 14.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 67,
+    "last_observed_cycle": 71,
+    "predicted_RUL": 117.4,
+    "true_RUL_for_validation_only": 77.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 68,
+    "last_observed_cycle": 187,
+    "predicted_RUL": 10.5,
+    "true_RUL_for_validation_only": 8.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 69,
+    "last_observed_cycle": 54,
+    "predicted_RUL": 116.0,
+    "true_RUL_for_validation_only": 121.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 70,
+    "last_observed_cycle": 152,
+    "predicted_RUL": 84.1,
+    "true_RUL_for_validation_only": 94.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 71,
+    "last_observed_cycle": 68,
+    "predicted_RUL": 109.7,
+    "true_RUL_for_validation_only": 118.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 72,
+    "last_observed_cycle": 131,
+    "predicted_RUL": 69.1,
+    "true_RUL_for_validation_only": 50.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 73,
+    "last_observed_cycle": 112,
+    "predicted_RUL": 103.6,
+    "true_RUL_for_validation_only": 131.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 74,
+    "last_observed_cycle": 137,
+    "predicted_RUL": 114.3,
+    "true_RUL_for_validation_only": 126.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 75,
+    "last_observed_cycle": 88,
+    "predicted_RUL": 104.3,
+    "true_RUL_for_validation_only": 113.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 76,
+    "last_observed_cycle": 205,
+    "predicted_RUL": 10.3,
+    "true_RUL_for_validation_only": 10.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 77,
+    "last_observed_cycle": 162,
+    "predicted_RUL": 29.7,
+    "true_RUL_for_validation_only": 34.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 78,
+    "last_observed_cycle": 72,
+    "predicted_RUL": 125.0,
+    "true_RUL_for_validation_only": 107.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 79,
+    "last_observed_cycle": 101,
+    "predicted_RUL": 88.9,
+    "true_RUL_for_validation_only": 63.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 80,
+    "last_observed_cycle": 133,
+    "predicted_RUL": 93.8,
+    "true_RUL_for_validation_only": 90.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 81,
+    "last_observed_cycle": 213,
+    "predicted_RUL": 9.4,
+    "true_RUL_for_validation_only": 8.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 82,
+    "last_observed_cycle": 162,
+    "predicted_RUL": 11.1,
+    "true_RUL_for_validation_only": 9.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 83,
+    "last_observed_cycle": 73,
+    "predicted_RUL": 118.6,
+    "true_RUL_for_validation_only": 137.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 84,
+    "last_observed_cycle": 172,
+    "predicted_RUL": 71.7,
+    "true_RUL_for_validation_only": 58.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 85,
+    "last_observed_cycle": 34,
+    "predicted_RUL": 124.9,
+    "true_RUL_for_validation_only": 118.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 86,
+    "last_observed_cycle": 110,
+    "predicted_RUL": 109.6,
+    "true_RUL_for_validation_only": 89.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 87,
+    "last_observed_cycle": 56,
+    "predicted_RUL": 118.9,
+    "true_RUL_for_validation_only": 116.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 88,
+    "last_observed_cycle": 68,
+    "predicted_RUL": 101.1,
+    "true_RUL_for_validation_only": 115.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 89,
+    "last_observed_cycle": 177,
+    "predicted_RUL": 119.0,
+    "true_RUL_for_validation_only": 136.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 90,
+    "last_observed_cycle": 146,
+    "predicted_RUL": 25.0,
+    "true_RUL_for_validation_only": 28.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 91,
+    "last_observed_cycle": 234,
+    "predicted_RUL": 34.5,
+    "true_RUL_for_validation_only": 38.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 92,
+    "last_observed_cycle": 150,
+    "predicted_RUL": 21.2,
+    "true_RUL_for_validation_only": 20.0,
+    "risk_level": "RED"
+  },
+  {
+    "unit": 93,
+    "last_observed_cycle": 244,
+    "predicted_RUL": 53.0,
+    "true_RUL_for_validation_only": 85.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 94,
+    "last_observed_cycle": 133,
+    "predicted_RUL": 59.1,
+    "true_RUL_for_validation_only": 55.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 95,
+    "last_observed_cycle": 89,
+    "predicted_RUL": 105.5,
+    "true_RUL_for_validation_only": 128.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 96,
+    "last_observed_cycle": 97,
+    "predicted_RUL": 114.6,
+    "true_RUL_for_validation_only": 137.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 97,
+    "last_observed_cycle": 134,
+    "predicted_RUL": 101.0,
+    "true_RUL_for_validation_only": 82.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 98,
+    "last_observed_cycle": 121,
+    "predicted_RUL": 76.9,
+    "true_RUL_for_validation_only": 59.0,
+    "risk_level": "YELLOW"
+  },
+  {
+    "unit": 99,
+    "last_observed_cycle": 97,
+    "predicted_RUL": 115.7,
+    "true_RUL_for_validation_only": 117.0,
+    "risk_level": "GREEN"
+  },
+  {
+    "unit": 100,
+    "last_observed_cycle": 198,
+    "predicted_RUL": 17.0,
+    "true_RUL_for_validation_only": 20.0,
+    "risk_level": "RED"
+  }
+]

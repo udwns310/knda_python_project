@@ -18,12 +18,12 @@
     "test_NASA":7139.1272937754
   },
   {
-    "model":"lstm_seq2seq",
-    "val_MAE":8.0580635071,
-    "val_RMSE":14.2687473297,
-    "val_NASA":221798.140625,
-    "test_MAE":18.6982879187,
-    "test_RMSE":25.8419703995,
-    "test_NASA":4280.7134193008
+    "model":"gru_seq2seq",
+    "val_MAE":7.8205552101,
+    "val_RMSE":13.7021770477,
+    "val_NASA":245078.5625,
+    "test_MAE":17.3106404197,
+    "test_RMSE":25.2131892024,
+    "test_NASA":4165.1550139215
   }
 ]

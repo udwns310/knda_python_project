@@ -1,0 +1,14 @@
+{
+  "danger_case": {
+    "unit": 67,
+    "RUL_true": 77.0,
+    "RUL_pred": 117.35423,
+    "residual": 40.35423
+  },
+  "conservative_case": {
+    "unit": 93,
+    "RUL_true": 85.0,
+    "RUL_pred": 53.010914,
+    "residual": -31.989086
+  }
+}

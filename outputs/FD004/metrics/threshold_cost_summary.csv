@@ -1,0 +1,5 @@
+﻿model,cost_ratio,best_N,best_cost,best_failure_rate,best_wasted_cycles,within_5pct_N,N30_failure_rate,N30_extra_cost_pct,N40_failure_rate,N40_extra_cost_pct
+GRU (04번),1:2 (Lee & Mitici 2023),40,4.44,0.002,26.2,35~45,0.143,8.5,0.002,0.0
+GRU (04번),1:5 (de Pater 2022),40,4.47,0.002,26.2,40~50,0.143,48.3,0.002,0.0
+RandomForest (03번),1:2 (Lee & Mitici 2023),45,4.64,0.026,31.5,35~60,0.202,10.2,0.063,1.3
+RandomForest (03번),1:5 (de Pater 2022),55,4.82,0.006,39.8,45~65,0.202,59.7,0.063,14.8

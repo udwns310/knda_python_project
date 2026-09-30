@@ -8,28 +8,30 @@
 08_export_dashboard_ts.py가 생성합니다. 여기서 만드는 JSON과 스키마 문서(README.md)는
 나중에 백엔드 API로 바꿀 때 응답 형태의 기준으로도 쓸 수 있습니다.
 
-내보내는 파일 (outputs/dashboard_data/):
+내보내는 파일 (outputs/<데이터셋>/dashboard_data/):
   1. model_comparison.json     — 모델별 성능 비교 (대시보드의 "모델 성능" 탭용)
-  2. engines_summary.json      — test 100개 엔진 각각의 현재 상태/위험도 요약 (엔진 목록/카드 뷰용)
+  2. engines_summary.json      — test 엔진 각각의 현재 상태/위험도 요약 (엔진 목록/카드 뷰용)
   3. engine_timeseries/{unit}.json — 엔진 하나를 클릭했을 때 보여줄 상세 시계열 (센서 + RUL 추이)
   4. error_cases.json          — 오류 사례 2건 (대시보드의 "모델 한계" 설명용)
-  5. README.md                 — 각 파일의 필드 설명 (스키마 문서)
+  (각 파일의 필드 설명은 docs/DASHBOARD_DATA.md)
+실행 순서: 04·05번 다음
 """
 
-import sys, json, os
+import json
+import os
+
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from common import (
-    load_raw, add_rul_labels, split_engines, Normalizer, RUL_CLIP_VALUE,
+    load_raw, add_rul_labels, split_engines, Normalizer, RegimeCorrector,
     risk_level,  # 위험도 등급 구간 [임의 설정값 #7]은 common.py 7번 섹션에 있습니다.
 )
+from seq_models import load_seq_model, predict_recurrent
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_DASH, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
+from common import OUT_METRICS, OUT_DASH, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 os.makedirs(f"{OUT_DASH}/engine_timeseries", exist_ok=True)
 
 
@@ -41,48 +43,21 @@ comparison.to_json(f"{OUT_DASH}/model_comparison.json", orient="records", force_
 print(f"저장: {OUT_DASH}/model_comparison.json")
 
 # ---------------------------------------------------------------------------
-# 2. LSTM 모델 재로드 (엔진별 상세 시계열 생성용)
+# 2. GRU 모델 재로드 (엔진별 상세 시계열 생성용, 04번에서 저장한 가중치)
 # ---------------------------------------------------------------------------
-class RULLSTM(nn.Module):
-    def __init__(self, n_features, hidden_size=200, fc_size=50, dropout=0.5):
-        super().__init__()
-        self.lstm = nn.LSTM(n_features, hidden_size, batch_first=True)
-        self.fc1 = nn.Linear(hidden_size, fc_size)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(dropout)
-        self.fc2 = nn.Linear(fc_size, 1)
-
-    def forward(self, x_padded, lengths):
-        packed = pack_padded_sequence(x_padded, lengths, batch_first=True, enforce_sorted=False)
-        out_packed, _ = self.lstm(packed)
-        out, _ = pad_packed_sequence(out_packed, batch_first=True)
-        out = self.dropout(self.relu(self.fc1(out)))
-        out = self.fc2(out)
-        return out.squeeze(-1)
-
-
-ckpt = torch.load(f"{OUT_MODELS}/lstm_model.pt", weights_only=False)
-active_sensors = ckpt["active_sensors"]
-model = RULLSTM(len(active_sensors), ckpt["hidden_size"], ckpt["fc_size"], ckpt["dropout"])
-model.load_state_dict(ckpt["model_state"])
-model.eval()
+model, active_sensors = load_seq_model(f"{OUT_MODELS}/gru_model.pt")
 
 train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)
 train_units, val_units = split_engines(train_raw)
 norm = Normalizer().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
-
-
-@torch.no_grad()
-def predict_sequence(seq_tensor):
-    x = seq_tensor.unsqueeze(0)
-    length = torch.tensor([len(seq_tensor)])
-    pred_norm = model(x, length).squeeze(0).numpy()
-    return np.clip(pred_norm * RUL_CLIP_VALUE, 0, RUL_CLIP_VALUE)
-
+# 대시보드 센서 추이용: 운전조건 차이를 뺀 값 (FD004처럼 비행 조건이 바뀌는 데이터는 원본값이 사이클마다
+# 크게 튀어 열화 추세가 안 보임. FD001은 보정값 = 원본값)
+corrector = RegimeCorrector().fit(train_raw[train_raw["unit"].isin(train_units)], active_sensors)
 
 test_raw = load_raw(TEST_FILE)
 test_norm = norm.transform(test_raw)
+test_view = corrector.transform(test_raw)
 rul_true_file = pd.read_csv(RUL_FILE, header=None, names=["RUL"])
 rul_true_file["unit"] = np.arange(1, len(rul_true_file) + 1)
 
@@ -94,7 +69,7 @@ for uid in sorted(test_raw["unit"].unique()):
     g_norm = test_norm[test_norm["unit"] == uid].sort_values("cycle")
     g_raw = test_raw[test_raw["unit"] == uid].sort_values("cycle")
     seq = torch.tensor(g_norm[active_sensors].values, dtype=torch.float32)
-    pred_curve = predict_sequence(seq)
+    pred_curve = predict_recurrent(model, seq)
     rul_true_final = float(rul_true_file.loc[rul_true_file.unit == uid, "RUL"].values[0])
     last_cycle = int(g_raw["cycle"].max())
     rul_pred_final = float(pred_curve[-1])
@@ -112,7 +87,7 @@ for uid in sorted(test_raw["unit"].unique()):
         "unit": int(uid),
         "cycles": g_raw["cycle"].tolist(),
         "predicted_RUL_curve": [round(float(v), 2) for v in pred_curve],
-        "sensors": {col: g_raw[col].tolist() for col in active_sensors},
+        "sensors": {col: test_view.loc[g_raw.index, col].round(2).tolist() for col in active_sensors},
     }
     with open(f"{OUT_DASH}/engine_timeseries/{uid}.json", "w", encoding="utf-8") as f:
         json.dump(ts, f, ensure_ascii=False)

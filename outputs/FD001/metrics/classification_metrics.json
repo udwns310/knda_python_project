@@ -1,0 +1,432 @@
+{
+  "task": "고장 임박 이진 분류 (위험 = 잔여 ≤ 40사이클)",
+  "baseline": {
+    "method": "이동 Z-score 건강지표",
+    "normal_cycles": 30,
+    "smooth_window": 15,
+    "tau": 1.5285
+  },
+  "model": {
+    "method": "RandomForestClassifier",
+    "n_estimators": 300,
+    "min_samples_leaf": 5,
+    "random_state": 42
+  },
+  "threshold_adjustment": {
+    "default": 0.5,
+    "chosen": 0.34,
+    "rule": "train 엔진 5-겹 교차검증에서 Recall ≥ 0.9 중 Precision 최대",
+    "reason": "미탐 1건 비용이 오탐 1건의 약 48배(08번 비용 가정)라 재현율 우선"
+  },
+  "comparison": [
+    {
+      "model": "기준모델(이동 Z-score)",
+      "val_TP": 688,
+      "val_FN": 132,
+      "val_FP": 91,
+      "val_TN": 2941,
+      "val_precision": 0.883,
+      "val_recall": 0.839,
+      "val_F1": 0.861,
+      "test_TP": 23,
+      "test_FN": 5,
+      "test_FP": 3,
+      "test_TN": 69,
+      "test_precision": 0.885,
+      "test_recall": 0.821,
+      "test_F1": 0.852
+    },
+    {
+      "model": "RandomForest 분류(임곗값 0.5)",
+      "val_TP": 719,
+      "val_FN": 101,
+      "val_FP": 48,
+      "val_TN": 2984,
+      "val_precision": 0.937,
+      "val_recall": 0.877,
+      "val_F1": 0.906,
+      "test_TP": 25,
+      "test_FN": 3,
+      "test_FP": 0,
+      "test_TN": 72,
+      "test_precision": 1.0,
+      "test_recall": 0.893,
+      "test_F1": 0.943
+    },
+    {
+      "model": "RandomForest 분류(임곗값 0.34)",
+      "val_TP": 756,
+      "val_FN": 64,
+      "val_FP": 116,
+      "val_TN": 2916,
+      "val_precision": 0.867,
+      "val_recall": 0.922,
+      "val_F1": 0.894,
+      "test_TP": 26,
+      "test_FN": 2,
+      "test_FP": 4,
+      "test_TN": 68,
+      "test_precision": 0.867,
+      "test_recall": 0.929,
+      "test_F1": 0.897
+    },
+    {
+      "model": "RF 회귀→분류(예측 RUL≤40)",
+      "val_TP": 671,
+      "val_FN": 149,
+      "val_FP": 34,
+      "val_TN": 2998,
+      "val_precision": 0.952,
+      "val_recall": 0.818,
+      "val_F1": 0.88,
+      "test_TP": 23,
+      "test_FN": 5,
+      "test_FP": 0,
+      "test_TN": 72,
+      "test_precision": 1.0,
+      "test_recall": 0.821,
+      "test_F1": 0.902
+    },
+    {
+      "model": "GRU 회귀→분류(예측 RUL≤40)",
+      "val_TP": 785,
+      "val_FN": 35,
+      "val_FP": 52,
+      "val_TN": 2980,
+      "val_precision": 0.938,
+      "val_recall": 0.957,
+      "val_F1": 0.947,
+      "test_TP": 27,
+      "test_FN": 1,
+      "test_FP": 1,
+      "test_TN": 71,
+      "test_precision": 0.964,
+      "test_recall": 0.964,
+      "test_F1": 0.964
+    }
+  ],
+  "danger_threshold_sensitivity": [
+    {
+      "danger_RUL": 20,
+      "RF분류_F1(0.5)": 0.919,
+      "GRU회귀→분류_F1": 0.927
+    },
+    {
+      "danger_RUL": 30,
+      "RF분류_F1(0.5)": 0.893,
+      "GRU회귀→분류_F1": 0.938
+    },
+    {
+      "danger_RUL": 40,
+      "RF분류_F1(0.5)": 0.906,
+      "GRU회귀→분류_F1": 0.947
+    },
+    {
+      "danger_RUL": 50,
+      "RF분류_F1(0.5)": 0.892,
+      "GRU회귀→분류_F1": 0.952
+    },
+    {
+      "danger_RUL": 60,
+      "RF분류_F1(0.5)": 0.874,
+      "GRU회귀→분류_F1": 0.933
+    }
+  ],
+  "lead_time": {
+    "rule": "3사이클 연속 경보",
+    "median": 42.0,
+    "per_engine": [
+      {
+        "unit": 3,
+        "life": 179,
+        "first_alarm_cycle": 147,
+        "lead_time": 32
+      },
+      {
+        "unit": 5,
+        "life": 269,
+        "first_alarm_cycle": 221,
+        "lead_time": 48
+      },
+      {
+        "unit": 19,
+        "life": 158,
+        "first_alarm_cycle": 113,
+        "lead_time": 45
+      },
+      {
+        "unit": 22,
+        "life": 202,
+        "first_alarm_cycle": 134,
+        "lead_time": 68
+      },
+      {
+        "unit": 25,
+        "life": 230,
+        "first_alarm_cycle": 184,
+        "lead_time": 46
+      },
+      {
+        "unit": 26,
+        "life": 199,
+        "first_alarm_cycle": 153,
+        "lead_time": 46
+      },
+      {
+        "unit": 28,
+        "life": 165,
+        "first_alarm_cycle": 140,
+        "lead_time": 25
+      },
+      {
+        "unit": 34,
+        "life": 195,
+        "first_alarm_cycle": 150,
+        "lead_time": 45
+      },
+      {
+        "unit": 43,
+        "life": 207,
+        "first_alarm_cycle": 173,
+        "lead_time": 34
+      },
+      {
+        "unit": 51,
+        "life": 213,
+        "first_alarm_cycle": 172,
+        "lead_time": 41
+      },
+      {
+        "unit": 52,
+        "life": 213,
+        "first_alarm_cycle": 162,
+        "lead_time": 51
+      },
+      {
+        "unit": 53,
+        "life": 195,
+        "first_alarm_cycle": 156,
+        "lead_time": 39
+      },
+      {
+        "unit": 57,
+        "life": 137,
+        "first_alarm_cycle": 106,
+        "lead_time": 31
+      },
+      {
+        "unit": 60,
+        "life": 172,
+        "first_alarm_cycle": 134,
+        "lead_time": 38
+      },
+      {
+        "unit": 62,
+        "life": 180,
+        "first_alarm_cycle": 128,
+        "lead_time": 52
+      },
+      {
+        "unit": 72,
+        "life": 213,
+        "first_alarm_cycle": 170,
+        "lead_time": 43
+      },
+      {
+        "unit": 82,
+        "life": 214,
+        "first_alarm_cycle": 176,
+        "lead_time": 38
+      },
+      {
+        "unit": 93,
+        "life": 155,
+        "first_alarm_cycle": 135,
+        "lead_time": 20
+      },
+      {
+        "unit": 98,
+        "life": 156,
+        "first_alarm_cycle": 137,
+        "lead_time": 19
+      },
+      {
+        "unit": 100,
+        "life": 200,
+        "first_alarm_cycle": 157,
+        "lead_time": 43
+      }
+    ]
+  },
+  "error_cases": {
+    "false_alarm": {
+      "unit": 22,
+      "life": 202,
+      "count": 30,
+      "cycles": [
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161
+      ],
+      "rul_at_cycles": [
+        70,
+        69,
+        68,
+        67,
+        66,
+        65,
+        64,
+        63,
+        62,
+        61,
+        60,
+        59,
+        58,
+        57,
+        56,
+        55,
+        54,
+        53,
+        52,
+        51,
+        50,
+        49,
+        48,
+        47,
+        46,
+        45,
+        44,
+        43,
+        42,
+        41
+      ],
+      "sensor": "s4",
+      "sensor_ma15_at_cycles": [
+        1415.57,
+        1415.78,
+        1416.99,
+        1416.8,
+        1416.91,
+        1416.34,
+        1416.15,
+        1415.99,
+        1416.09,
+        1416.35,
+        1416.58,
+        1416.36,
+        1415.9,
+        1415.81,
+        1415.95,
+        1415.94,
+        1415.59,
+        1415.41,
+        1415.86,
+        1416.34,
+        1416.83,
+        1416.89,
+        1417.13,
+        1417.37,
+        1418.01,
+        1417.67,
+        1417.62,
+        1418.48,
+        1418.69,
+        1418.79
+      ]
+    },
+    "missed": {
+      "unit": 93,
+      "life": 155,
+      "count": 18,
+      "cycles": [
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132
+      ],
+      "rul_at_cycles": [
+        40,
+        39,
+        38,
+        37,
+        36,
+        35,
+        34,
+        33,
+        32,
+        31,
+        30,
+        29,
+        28,
+        27,
+        26,
+        25,
+        24,
+        23
+      ],
+      "sensor": "s4",
+      "sensor_ma15_at_cycles": [
+        1410.03,
+        1410.31,
+        1410.79,
+        1411.02,
+        1411.82,
+        1412.62,
+        1412.56,
+        1412.51,
+        1412.59,
+        1412.97,
+        1413.5,
+        1413.55,
+        1414.09,
+        1414.75,
+        1414.83,
+        1414.93,
+        1415.25,
+        1415.6
+      ]
+    },
+    "typical_at_danger_entry": 1415.15
+  }
+}

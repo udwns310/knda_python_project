@@ -1,0 +1,6 @@
+﻿model,val_F1,val_Precision,val_Recall,test_F1,seconds
+GRU 회귀 → RUL≤40 (참고),0.915,0.947,0.885,0.931,
+HistGradientBoosting,0.859,0.873,0.845,0.899,1.0
+RandomForest,0.854,0.879,0.83,0.905,24.0
+LogisticRegression,0.839,0.877,0.804,0.866,1.0
+IsolationForest (비지도),0.744,0.675,0.829,0.863,3.0
