@@ -1,34 +1,43 @@
 """
 13_threshold_cost.py
 ====================
-[임의 설정값 #11] 위험 기준(잔여 ≤ N사이클)의 보전 관점 근거: "정비 리드타임을 지키면서
-운행 1사이클당 정비 비용이 가장 싼 N은 얼마인가?"
+[임의 설정값 #11] 위험 기준(예측 RUL ≤ N사이클이면 정비 경보)의 보전 관점 근거:
+"정비 준비 기간을 지키면서, 운행 1사이클당 정비 비용이 가장 싼 N은 얼마인가?"
 
 과정 진행 가이드의 평가 규칙 "임곗값을 조정한 경우, 왜 그 값을 선택했는지 보전 관점(점검 비용 vs
-고장 누락 위험)에서 설명"에 대한 정량 근거를 만드는 스크립트입니다.
+고장 누락 위험)에서 설명"에 대한 정량 근거입니다. 정비 준비 기간과 비용 비율은 C-MAPSS 터보팬 엔진으로
+정비 일정을 연구한 공개 논문의 가정을 그대로 가져왔습니다.
 
-정비 정책 (모델이 매 사이클 예측하는 RUL을 그대로 사용):
-  1) 예측 RUL이 처음으로 N 이하가 되는 사이클에 경보를 울린다.
-  2) 경보 후 부품 주문·인력 배치에 L사이클(리드타임)이 걸려, 경보 L사이클 뒤에 정비한다.
-  3) 정비 전에 엔진이 고장 나면 → 비계획 정비 (긴 정지 + 응급 수리)
-     정비가 고장보다 먼저면     → 계획 정비 (짧은 정지 + 일반 수리), 대신 남은 수명만큼 운행을 덜 함
-  경보가 끝까지 안 울리면 고장까지 운행 → 비계획 정비.
+[문헌 근거]
+  (1) de Pater, Reijns, Mitici (2022), "Alarm-based predictive maintenance scheduling for aircraft
+      engines with imperfect Remaining Useful Life prognostics", Reliability Engineering & System
+      Safety 221, 108341 — C-MAPSS 전 서브셋 사용
+      · 추가 정비 준비에 최소 7일 필요, 항공기별 정비 슬롯은 10~20일마다, 정비 계획은 매주 갱신
+      · 항공기는 하루 1회 비행 (→ 1일 = 1사이클)
+      · 비용: 계획 정비 10,000 / 엔진 고장 50,000 (1 : 5)
+      · 유전 알고리즘으로 최적화한 경보 기준: 예측 RUL 49사이클 (안전계수 0.44 함께 사용)
+  (2) Lee & Mitici (2023), "Deep reinforcement learning for predictive aircraft maintenance using
+      probabilistic Remaining-Useful-Life prognostics", RESS 230, 108908 — FD002 사용
+      · 엔진 교체 준비에 며칠이 걸려 30사이클 단위로 정비를 계획
+      · 비용: 계획 교체 1 / 비계획 교체 2 (1 : 2)
 
-비교 지표 = 운행 1사이클당 정비 비용 = (모든 엔진의 정비 비용 합) ÷ (모든 엔진이 실제로 운행한 사이클 합)
-  - N이 너무 크면: 고장은 막지만 멀쩡한 엔진을 일찍 정비해 운행 사이클(분모)이 줄어 비싸짐
-  - N이 너무 작으면: 경보 뒤 리드타임 안에 고장 나는 엔진이 늘어 비계획 비용(분자)이 커짐
-  → 그 사이의 가장 싼 N이 "리드타임을 고려한 최적 위험 기준"입니다.
+[정비 정책 — (1)의 운영 방식을 그대로 흉내 냄]
+  1) 예측 RUL이 처음으로 N 이하가 되면 경보.
+  2) 다음 주간 계획 회의(0~6일 뒤)에서 정비를 잡고, 준비에 7일이 걸린 뒤,
+     그 이후 처음 돌아오는 정비 슬롯(10~20일 간격)에 정비.
+  3) 정비 전에 고장 나면 비계획 정비, 아니면 계획 정비(남은 수명만큼 운행을 덜 함).
+  주간 회의 시점·슬롯 간격·슬롯 위치는 매번 달라서 무작위로 200번 반복한 평균을 씁니다.
+  → 경보부터 정비까지 걸리는 시간 = 약 7~33사이클 (평균 약 17사이클)
 
-가정값 (C-MAPSS에는 비용·리드타임 정보가 없어 08번 대시보드 비용 시뮬레이션과 같은 가정을 씀):
-  계획 정비 1건   = 4시간 정지 × 1,000만원/시간 + 수리 800만원            = 4,800만원
-  비계획 정비 1건 = 24시간 정지 × 1,000만원/시간 + 응급 수리(800만원 × 3) = 26,400만원
-  리드타임 L      = 실제 값을 몰라 0·5·10·15·20·30사이클로 바꿔 가며 확인
+[비교 지표] 운행 1사이클당 정비 비용 = 정비 비용 합 ÷ 실제로 운행한 사이클 합
+  - N이 너무 크면: 멀쩡한 엔진을 일찍 정비 → 운행 사이클(분모)이 줄어 비쌈
+  - N이 너무 작으면: 정비 전에 고장 → 비계획 비용(분자)이 커짐
 
 데이터: validation 엔진(학습에 안 쓴 엔진)의 모든 사이클 예측값 (02·03·04번이 저장한 csv).
-공식 test 엔진은 고장 전에 기록이 끊겨 있어 "언제 고장 났는지"를 알 수 없으므로 이 시뮬레이션에 쓸 수 없습니다.
+공식 test 엔진은 고장 전에 기록이 끊겨 있어 "언제 고장 났는지"를 알 수 없으므로 쓸 수 없습니다.
 
-실행: python scripts/13_threshold_cost.py   (몇 초, CMAPSS_DATASET으로 FD004도 가능)
-결과: outputs/metrics/threshold_cost.csv, outputs/figures/threshold_cost.png
+실행: python scripts/13_threshold_cost.py   (FD004: CMAPSS_DATASET=FD004, 약 1분)
+결과: outputs/metrics/threshold_cost.csv, threshold_cost_summary.csv, outputs/figures/threshold_cost.png
 """
 
 import numpy as np
@@ -37,80 +46,113 @@ import matplotlib.pyplot as plt
 
 from common import load_raw, DANGER_RUL, DATASET, TRAIN_FILE, OUT_METRICS, OUT_FIG
 
-COST_PLANNED = 4 * 1000 + 800            # 만원
-COST_UNPLANNED = 24 * 1000 + 800 * 3     # 만원
-LEAD_TIMES = [0, 5, 10, 15, 20, 30]      # 사이클
-# 위험 기준 후보 (예측 RUL ≤ N 이면 경보). 80을 넘으면 엔진 가동 초반부터 경보가 울려 의미가 없어
-# 5~80만 봄 (RUL 라벨 상한이 125라 모델 예측도 초반에는 100~125 근처에 머묾).
-N_GRID = list(range(5, 81, 5))
-MODELS = {"LSTM (04번)": "lstm", "RandomForest (03번)": "rf", "베이스라인 (02번)": "baseline"}
+# 비용 비율 (계획 정비 = 1 기준). 1:5가 문헌 (1)의 주 설정, 1:2는 문헌 (2)로 보수적으로 확인.
+COST_SETTINGS = {"1:5 (de Pater 2022)": 5.0, "1:2 (Lee & Mitici 2023)": 2.0}
+PREP_DAYS = 7              # 문헌 (1): 추가 정비 준비 최소 7일
+SLOT_INTERVAL = (10, 20)   # 문헌 (1): 정비 슬롯 10~20일 간격
+REVIEW_EVERY = 7           # 문헌 (1): 정비 계획 매주 갱신
+N_SIM = 200                # 무작위 반복 횟수
+N_GRID = list(range(10, 81, 5))
+MODELS = {"LSTM (04번)": "lstm", "RandomForest (03번)": "rf"}
 
 life = load_raw(TRAIN_FILE).groupby("unit")["cycle"].max()
 
 
-def simulate(pred: pd.DataFrame, n: int, lead: int) -> dict:
-    """pred: unit, cycle, RUL_pred (validation 엔진의 모든 사이클)."""
-    cost = operated = failures = wasted = 0
-    for u, g in pred.groupby("unit"):
-        g = g.sort_values("cycle")
-        L = int(life[u])
-        alarm = g.loc[g["RUL_pred"] <= n, "cycle"]
-        maint = int(alarm.iloc[0]) + lead if len(alarm) else None
-        if maint is None or maint >= L:            # 정비 전에 고장
-            cost += COST_UNPLANNED
-            operated += L
-            failures += 1
-        else:                                      # 계획 정비 (남은 수명 L - maint 만큼 버림)
-            cost += COST_PLANNED
-            operated += maint
-            wasted += L - maint
-    n_eng = pred["unit"].nunique()
-    return {"cost_per_cycle": cost / operated, "failures": failures, "failure_rate": failures / n_eng,
-            "avg_wasted_cycles": wasted / max(1, n_eng - failures)}
+def lead_time(rng) -> int:
+    """경보 → 정비까지 걸리는 사이클 (주간 회의 대기 + 준비 7일 + 다음 슬롯까지 대기)."""
+    wait_review = rng.integers(0, REVIEW_EVERY)
+    interval = rng.integers(SLOT_INTERVAL[0], SLOT_INTERVAL[1] + 1)
+    wait_slot = rng.integers(0, interval)          # 준비가 끝난 뒤 다음 슬롯까지
+    return int(wait_review + PREP_DAYS + wait_slot)
+
+
+def simulate(alarm_cycle: dict, n_sim: int, cost_fail: float, seed: int = 42) -> dict:
+    """alarm_cycle: 엔진 → 경보 사이클(None이면 경보 없음)."""
+    rng = np.random.default_rng(seed)
+    total_cost = total_ops = failures = wasted = 0.0
+    for _ in range(n_sim):
+        for u, a in alarm_cycle.items():
+            L = int(life[u])
+            m = None if a is None else a + lead_time(rng)
+            if m is None or m >= L:
+                total_cost += cost_fail
+                total_ops += L
+                failures += 1
+            else:
+                total_cost += 1.0
+                total_ops += m
+                wasted += L - m
+    n = n_sim * len(alarm_cycle)
+    return {"cost_per_1000_cycles": 1000 * total_cost / total_ops, "failure_rate": failures / n,
+            "avg_wasted_cycles": wasted / max(1, n - failures)}
 
 
 rows = []
 for name, key in MODELS.items():
-    pred = pd.read_csv(f"{OUT_METRICS}/{key}_val_predictions.csv")
-    for lead in LEAD_TIMES:
-        for n in N_GRID:
-            rows.append({"model": name, "lead_time": lead, "N": n, **simulate(pred, n, lead)})
+    pred = pd.read_csv(f"{OUT_METRICS}/{key}_val_predictions.csv").sort_values(["unit", "cycle"])
+    for n in N_GRID:
+        alarm = {u: (int(g.loc[g["RUL_pred"] <= n, "cycle"].iloc[0]) if (g["RUL_pred"] <= n).any() else None)
+                 for u, g in pred.groupby("unit")}
+        for cname, cf in COST_SETTINGS.items():
+            rows.append({"model": name, "cost_ratio": cname, "N": n, **simulate(alarm, N_SIM, cf)})
 res = pd.DataFrame(rows)
-
-# 참고선: ① 정비 없이 고장까지 운행 ② 고장 시점을 미리 안다고 가정한 이상적인 계획 정비(버리는 수명 0)
-val_life = life.loc[pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")["unit"].unique()]
-run_to_failure = COST_UNPLANNED * len(val_life) / val_life.sum()
-ideal = COST_PLANNED * len(val_life) / val_life.sum()
-res["cost_per_cycle"] = res["cost_per_cycle"].round(2)
 res.to_csv(f"{OUT_METRICS}/threshold_cost.csv", index=False, encoding="utf-8-sig")
 
-best = res.loc[res.groupby(["model", "lead_time"])["cost_per_cycle"].idxmin()]
-at30 = res[res["N"] == DANGER_RUL].set_index(["model", "lead_time"])["cost_per_cycle"]
-best = best.assign(cost_at_N30=[at30[(m, l)] for m, l in zip(best["model"], best["lead_time"])])
-best["N30_extra_cost_pct"] = ((best["cost_at_N30"] / best["cost_per_cycle"] - 1) * 100).round(1)
+# 기준값 요약: 최적 N, 그 비용, 그리고 현재 기준(30)·최적의 5% 이내 범위
+summary = []
+for (m, c), g in res.groupby(["model", "cost_ratio"]):
+    best = g.loc[g["cost_per_1000_cycles"].idxmin()]
+    near = g[g["cost_per_1000_cycles"] <= best["cost_per_1000_cycles"] * 1.05]["N"]
+    at30 = g.loc[g["N"] == DANGER_RUL].iloc[0]
+    summary.append({"model": m, "cost_ratio": c, "best_N": int(best["N"]),
+                    "best_cost": round(best["cost_per_1000_cycles"], 2),
+                    "best_failure_rate": round(best["failure_rate"], 3),
+                    "best_wasted_cycles": round(best["avg_wasted_cycles"], 1),
+                    "within_5pct_N": f"{near.min()}~{near.max()}",
+                    f"N{DANGER_RUL}_failure_rate": round(at30["failure_rate"], 3),
+                    f"N{DANGER_RUL}_extra_cost_pct": round((at30["cost_per_1000_cycles"] / best["cost_per_1000_cycles"] - 1) * 100, 1)})
+summary = pd.DataFrame(summary)
+summary.to_csv(f"{OUT_METRICS}/threshold_cost_summary.csv", index=False, encoding="utf-8-sig")
 
-print(f"[{DATASET}] validation 엔진 {len(val_life)}대, 운행 1사이클당 비용 (만원/사이클)")
-print(f"  참고: 고장까지 운행 {run_to_failure:.1f} / 고장 시점을 미리 아는 이상적 정비 {ideal:.1f}\n")
-print(best[["model", "lead_time", "N", "cost_per_cycle", "failures", "avg_wasted_cycles",
-            "cost_at_N30", "N30_extra_cost_pct"]].to_string(index=False))
+rng = np.random.default_rng(0)
+leads = np.array([lead_time(rng) for _ in range(10000)])
+print(f"[{DATASET}] validation 엔진 {len(pred['unit'].unique())}대, 경보→정비 {leads.min()}~{leads.max()}사이클 "
+      f"(평균 {leads.mean():.1f}, 90% 이내 {np.percentile(leads, 90):.0f})")
+print(summary.to_string(index=False))
 
-# 그림: LSTM 기준, 리드타임별 비용 곡선과 최솟값, 그리고 현재 기준(30)
-fig, ax = plt.subplots(figsize=(9, 5))
-lstm = res[res["model"] == "LSTM (04번)"]
-for lead in LEAD_TIMES:
-    c = lstm[lstm["lead_time"] == lead]
-    line, = ax.plot(c["N"], c["cost_per_cycle"], marker="o", markersize=3, label=f"리드타임 {lead}사이클")
-    b = c.loc[c["cost_per_cycle"].idxmin()]
-    ax.scatter([b["N"]], [b["cost_per_cycle"]], color=line.get_color(), s=70, zorder=5, edgecolor="black")
-ax.axvline(DANGER_RUL, color="crimson", linestyle="--", label=f"현재 위험 기준 N = {DANGER_RUL}")
-ax.axhline(run_to_failure, color="gray", linestyle=":", label=f"고장까지 운행 ({run_to_failure:.0f})")
-ax.axhline(ideal, color="green", linestyle=":", label=f"이상적 정비 ({ideal:.0f})")
-ax.set_ylim(0, run_to_failure * 1.15)
-ax.set_xlabel("위험 기준 N (예측 RUL ≤ N 이면 경보, cycle)")
-ax.set_ylabel("운행 1사이클당 정비 비용 (만원/cycle)")
-ax.set_title(f"리드타임별 위험 기준에 따른 정비 비용 — LSTM, {DATASET} validation {len(val_life)}대 (큰 점 = 최솟값)")
-ax.legend(fontsize=8, ncol=2)
+# 비용(비율 두 가지)과 정비 전 고장 비율은 단위가 달라 한 그래프에 겹치지 않고 나란히 그림
+COLORS = {"LSTM (04번)": "#2a78d6", "RandomForest (03번)": "#eb6834"}
+fig, axes = plt.subplots(1, 3, figsize=(16, 4.8), sharex=True)
+for ax, (cname, _) in zip(axes[:2], COST_SETTINGS.items()):
+    for name in MODELS:
+        g = res[(res["model"] == name) & (res["cost_ratio"] == cname)]
+        ax.plot(g["N"], g["cost_per_1000_cycles"], marker="o", markersize=4, linewidth=2,
+                color=COLORS[name], label=name)
+        b = g.loc[g["cost_per_1000_cycles"].idxmin()]
+        ax.scatter([b["N"]], [b["cost_per_1000_cycles"]], s=90, color=COLORS[name], edgecolor="white",
+                   linewidth=2, zorder=5)
+        ax.annotate(f"최저 N={int(b['N'])}", (b["N"], b["cost_per_1000_cycles"]), textcoords="offset points",
+                    xytext=(0, -16) if name.startswith("LSTM") else (0, 10), ha="center", fontsize=8)
+    ax.set_title(f"정비 비용 — 계획:비계획 = {cname}", loc="left", fontsize=10)
+    ax.set_ylabel("운행 1,000사이클당 정비 비용\n(계획 정비 1회 = 1)")
+for name in MODELS:
+    g = res[(res["model"] == name) & (res["cost_ratio"] == list(COST_SETTINGS)[0])]
+    axes[2].plot(g["N"], g["failure_rate"] * 100, marker="o", markersize=4, linewidth=2,
+                 color=COLORS[name], label=name)
+axes[2].set_title("정비 전에 고장 나는 엔진 비율 (비용 비율과 무관)", loc="left", fontsize=10)
+axes[2].set_ylabel("정비 전 고장 비율 (%)")
+for ax in axes:
+    ax.axvline(DANGER_RUL, color="#8a8985", linestyle="--", linewidth=1, label=f"기존 기준 N = {DANGER_RUL}")
+    ax.set_xlabel("위험 기준 N (예측 RUL ≤ N 이면 정비 경보, cycle)")
+    ax.grid(color="#e4e3df", linewidth=0.8)
+    ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    ax.legend(fontsize=8, loc="upper right", frameon=False)
+fig.suptitle(f"{DATASET} — 경보 후 주간 계획·준비 7일·정비 슬롯(10~20일) 대기를 거쳐 정비할 때 "
+             f"(de Pater et al. 2022 운영 조건, validation 엔진 {pred['unit'].nunique()}대)",
+             fontsize=11, x=0.01, ha="left")
 fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/threshold_cost.png", dpi=130)
 plt.close(fig)
-print(f"\n저장: {OUT_METRICS}/threshold_cost.csv, {OUT_FIG}/threshold_cost.png")
+print(f"\n저장: {OUT_METRICS}/threshold_cost*.csv, {OUT_FIG}/threshold_cost.png")
