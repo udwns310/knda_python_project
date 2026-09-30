@@ -21,26 +21,31 @@
   | Dropout | 0.5 | 0.5 | 원문 그대로 |
   | Optimizer | Adam | Adam | 원문 그대로 |
   | Gradient threshold | 1 | 1 (clip_grad_norm_) | 원문 그대로 |
-  | Epoch | 80 | 80 | 원문 그대로 (아래 실제 학습 속도를 보고 조정될 수 있음) |
+  | Epoch | 80 | 80 | 원문 그대로 (CPU 학습 시간: FD001 약 4분, FD004 약 15분) |
   | Mini-batch size | 20 | 20 | 원문 그대로 |
   | 타깃 정규화 | symmetric rescaling(자동) | RUL을 0~1로 스케일(÷125) 후 예측 시 다시 ×125 | 개념은 동일(정답 스케일을 작게 만들어 학습 안정화), 구현만 단순화 |
   | 평가 | 부분 시퀀스 마지막 시점 RMSE | 동일 + validation은 전체 궤적 매 시점 평가 | RF/베이스라인과 같은 평가 규약 유지(공정 비교) |
 """
 
-import sys, json, time
+import json
+import time
+
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pad_sequence
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
     Normalizer, SENSOR_COLS_RAW, RUL_CLIP_VALUE, mae, rmse, nasa_score,
 )
+# LSTM 모델 구조는 05·07·10번에서도 저장된 가중치를 불러올 때 똑같이 필요해서, 한 곳(seq_models.py)에
+# 정의해 두고 가져다 씁니다 (구조가 파일마다 따로 복사돼 있으면 한쪽만 고쳐지는 실수가 생길 수 있음).
+from seq_models import RULLSTM
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
+from common import OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 torch.manual_seed(42)  # 재현성을 위한 시드 고정 (RF와 마찬가지로 42 사용 — 팀 전체 관례)
 
@@ -79,26 +84,9 @@ print(f"입력 피처 차원(센서 개수): {len(active_sensors)}")
 
 
 # ---------------------------------------------------------------------------
-# 2. 모델 정의
+# 2. 모델 정의 — seq_models.py의 RULLSTM
+#    LSTM(hidden 200) → FC 50 → ReLU → Dropout 0.5 → FC 1, 매 사이클마다 RUL을 하나씩 출력
 # ---------------------------------------------------------------------------
-class RULLSTM(nn.Module):
-    def __init__(self, n_features, hidden_size=200, fc_size=50, dropout=0.5):
-        super().__init__()
-        self.lstm = nn.LSTM(n_features, hidden_size, batch_first=True)
-        self.fc1 = nn.Linear(hidden_size, fc_size)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(dropout)
-        self.fc2 = nn.Linear(fc_size, 1)
-
-    def forward(self, x_padded, lengths):
-        packed = pack_padded_sequence(x_padded, lengths, batch_first=True, enforce_sorted=False)
-        out_packed, _ = self.lstm(packed)
-        out, _ = pad_packed_sequence(out_packed, batch_first=True)
-        out = self.dropout(self.relu(self.fc1(out)))
-        out = self.fc2(out)  # (batch, seq_len, 1)
-        return out.squeeze(-1)
-
-
 model = RULLSTM(n_features=len(active_sensors))
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss(reduction="none")

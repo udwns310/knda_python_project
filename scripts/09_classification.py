@@ -16,7 +16,8 @@
   - 오탐 1건·미탐 1건 이상을 시계열 위에 → 7번 (그림 2장)
   - 선택 과제: 회귀 vs 분류 비교           → 5·6번 (LSTM 회귀 예측을 임곗값으로 잘라 같은 조건에서 비교)
 
-실행 순서: 01 ~ 05 다음 (04·03번의 예측 결과 CSV를 비교용으로 읽음, torch 불필요)
+실행 순서: 01 ~ 06 다음 (03·04번의 예측 결과 CSV를 비교용으로, 06번의 센서 해석 결과를 그래프
+          센서 선택용으로 읽음, torch 불필요)
 """
 
 import json
@@ -30,8 +31,8 @@ from sklearn.model_selection import GroupKFold
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
-    Normalizer, build_rf_features, SENSOR_COLS_RAW, DANGER_RUL,
-    DATA, OUT_FIG, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE, RegimeCorrector, MULTI_REGIME, DATASET,
+    Normalizer, build_rf_features, SENSOR_COLS_RAW, SENSOR_UNIT, DANGER_RUL,
+    OUT_FIG, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
 # 위험 기준(잔여 ≤ 30사이클, [임의 설정값 #11])은 대시보드 빨간불과 같은 값을 쓰도록
@@ -228,6 +229,8 @@ for ax, name in zip(axes, ["기준모델(이동 Z-score)", final_name]):
                     color="white" if cm[i, j] > cm.max() / 2 else "black")
     ax.set_xticks([0, 1], ["예측: 정상", "예측: 위험"])
     ax.set_yticks([0, 1], ["실제: 정상", "실제: 위험"])
+    ax.set_xlabel("모델 판정 (칸 안의 숫자 = 운행 사이클 수)")
+    ax.set_ylabel("실제 상태")
     s = scores(val_feat["danger"], val_preds[name])
     ax.set_title(f"{name}\nPrecision {s['precision']:.2f} · Recall {s['recall']:.2f} · F1 {s['F1']:.2f}", fontsize=10)
 fig.suptitle(f"혼동행렬 — {DATASET} validation 엔진 {len(val_units)}대의 모든 사이클 (위험 = 잔여 ≤ {DANGER_RUL}사이클)", fontsize=11)
@@ -245,7 +248,7 @@ ax.axvline(prob_th, color="crimson", label=f"선택한 임곗값 {prob_th:.2f}")
 ax.axhline(TARGET_RECALL, color="crimson", linestyle=":", linewidth=0.8)
 ax.set_xlabel("위험 확률 임곗값 (이 값 이상이면 '위험' 경보)")
 ax.set_ylabel("지표 값 (0~1)")
-ax.set_title("RandomForest 분류 — 임곗값별 성능 (train 엔진 5-겹 교차검증)")
+ax.set_title(f"RandomForest 분류 — 임곗값별 성능 ({DATASET} train 엔진 {N_FOLDS}-겹 교차검증)")
 ax.legend(fontsize=8, loc="lower left")
 fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/cls_threshold_tradeoff.png")
@@ -318,7 +321,7 @@ def plot_case(unit: int, kind: str, filename: str):
     c = g.loc[mask, "cycle"]
     ax1.scatter(c, r.set_index("cycle").loc[c, PLOT_SENSOR], color="orange" if kind == "FP" else "blue", zorder=3, s=18,
                 label="오탐 (정상인데 위험 경보)" if kind == "FP" else "미탐 (위험한데 경보 없음)")
-    ax1.set_ylabel(f"{PLOT_SENSOR} 센서값" + (" (운전조건 보정)" if MULTI_REGIME else ""))
+    ax1.set_ylabel(f"{PLOT_SENSOR} ({SENSOR_UNIT[PLOT_SENSOR] or '비율'})" + (", 운전조건 보정" if MULTI_REGIME else ""))
     ax1.legend(fontsize=7, loc="upper left")
     ax2.plot(g["cycle"], g["p"], color="teal", label="모델이 본 위험 확률")
     ax2.axhline(prob_th, color="crimson", linestyle="--", label=f"경보 임곗값 {prob_th:.2f}")

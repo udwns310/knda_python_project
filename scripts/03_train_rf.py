@@ -5,8 +5,10 @@
 
 왜 Random Forest를 첫 ML 모델로 골랐는지:
   - 해석이 쉽습니다 (어떤 피처가 중요한지 바로 뽑을 수 있어서, 도메인 해석/발표 단계에서
-    "왜 이 센서가 중요한지"를 설명하기 좋습니다 — s11, s4, s12 등 EDA에서 뽑은
-    추세성 상위 센서와 실제로 일치하는지 뒤에서 확인합니다).
+    "왜 이 센서가 중요한지"를 설명하기 좋습니다 — 01번 EDA에서 뽑은 추세성 상위 센서와
+    실제로 일치하는지 06번에서 확인합니다).
+  - 과정 진행 가이드의 권장 모델(RandomForest, LogisticRegression, IsolationForest,
+    One-Class SVM) 중 회귀에도 그대로 쓸 수 있는 모델입니다.
   - 센서 값 스케일이나 분포 형태에 크게 민감하지 않아서 안정적으로 잘 작동합니다.
   - 학습이 빨라서(수 분 내) 하이퍼파라미터를 실제로 몇 가지 비교해보고 고를 여유가
     있습니다 (아래 2번 참고).
@@ -16,7 +18,9 @@
   - 최근 15사이클 이동평균 / 이동표준편차 / 추세기울기
 """
 
-import sys, json, time
+import json
+import time
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
@@ -24,16 +28,16 @@ import joblib
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
-    Normalizer, build_rf_features, SENSOR_COLS_RAW, RUL_CLIP_VALUE,
+    Normalizer, build_rf_features, SENSOR_COLS_RAW,
     mae, rmse, nasa_score,
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
-from common import DATA, OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
+from common import OUT_METRICS, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
 
 # ---------------------------------------------------------------------------
 # 1. 데이터 준비 (baseline과 완전히 동일한 분할을 재사용 — common.py의 seed=42
-#    덕분에 항상 같은 20개 엔진이 validation으로 뽑힙니다. 모델마다 다른 분할을
+#    덕분에 항상 같은 엔진들이 validation으로 뽑힙니다. 모델마다 다른 분할을
 #    쓰면 비교가 불공정해지므로 이 점이 중요합니다.)
 # ---------------------------------------------------------------------------
 train_raw = load_raw(TRAIN_FILE)
@@ -62,7 +66,7 @@ X_val, y_val = val_feat[feature_cols], val_feat["RUL"]
 # 2. [임의 설정값 #5] Random Forest 하이퍼파라미터 — 후보 몇 개를 실제로 학습해서
 #    validation MAE가 가장 낮은 조합을 고릅니다 ("감으로 정하지 않고 검증 성능으로
 #    검증했다"는 근거를 남기기 위함입니다). 후보 범위는 데이터 규모(학습 샘플
-#    약 1.6만개, 피처 약 56개)를 고려해 "너무 얕지도, 지나치게 깊어서 과적합
+#    FD001 기준 약 1.7만 행, 피처 56개)를 고려해 "너무 얕지도, 지나치게 깊어서 과적합
 #    나지도 않을 법한" 상식적인 범위로 잡았습니다.
 # ---------------------------------------------------------------------------
 candidates = [

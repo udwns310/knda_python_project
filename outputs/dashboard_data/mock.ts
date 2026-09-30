@@ -14,7 +14,7 @@ export const statusLabel: Record<Status, string> = {
 }
 
 export const dataMeta = {
-  "generatedAt": "2026-09-29T11:36:46",
+  "generatedAt": "2026-09-30T10:59:04",
   "dataset": "C-MAPSS FD001",
   "testEngines": 100,
   "selectedEngines": [
@@ -2207,23 +2207,23 @@ export const classifierMetrics = {
 export const featureImportance = [
   {
     "label": "T50 · LPT outlet 온도 (s4)",
-    "value": 0.58
+    "value": 0.589
   },
   {
     "label": "Nc · 물리적 코어 속도 (s9)",
-    "value": 0.086
+    "value": 0.094
   },
   {
     "label": "T30 · HPC outlet 온도 (s3)",
-    "value": 0.061
+    "value": 0.067
   },
   {
     "label": "Ps30 · HPC outlet 정압 (s11)",
-    "value": 0.049
+    "value": 0.053
   },
   {
     "label": "W32 · LPT 냉각 블리드 유량 (s21)",
-    "value": 0.031
+    "value": 0.037
   }
 ]
 

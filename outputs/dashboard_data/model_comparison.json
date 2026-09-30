@@ -10,12 +10,12 @@
   },
   {
     "model":"random_forest",
-    "val_MAE":11.9037244473,
-    "val_RMSE":17.2709039553,
-    "val_NASA":44331.9523768894,
-    "test_MAE":14.1920745684,
-    "test_RMSE":19.8710210782,
-    "test_NASA":1275.7789668897
+    "val_MAE":11.9037887036,
+    "val_RMSE":17.2709987213,
+    "val_NASA":44332.9777458929,
+    "test_MAE":14.1919079017,
+    "test_RMSE":19.8708303853,
+    "test_NASA":1275.7715974404
   },
   {
     "model":"lstm_seq2seq",
