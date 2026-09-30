@@ -101,13 +101,18 @@ knda_python_project/
 │   ├── 06_domain_interpretation.py ← 센서 중요도·도메인 해석
 │   ├── 07_export_dashboard.py      ← 대시보드용 JSON
 │   ├── 08_export_dashboard_ts.py   ← 대시보드 레포용 mock.ts
-│   └── 09_classification.py        ← [필수 과제] 고장 임박 이진 분류
+│   ├── 09_classification.py        ← [필수 과제] 고장 임박 이진 분류
+│   ├── 10_cross_dataset.py         ← [추가 실험] FD001 ↔ FD004 교차 검증
+│   ├── 11_model_screening.py       ← [추가 실험] 후보 모델 비교
+│   ├── 12_seed_check.py            ← [추가 실험] 딥러닝 시드별 흔들림 확인
+│   └── seq_models.py               ← 시계열 딥러닝 모델(LSTM·GRU·1D-CNN) 정의
 ├── outputs/
 │   ├── figures/             ← 그림 (EDA, 모델 비교, 혼동행렬, 오탐·미탐 사례, 센서 중요도)
 │   ├── metrics/             ← 모델별 성능 수치(json/csv), 예측값(csv)
 │   ├── dashboard_data/      ← 대시보드 연동 데이터 (스키마: README.md)
 │   ├── models/              ← 학습된 모델 (실행 시 생성, 레포에는 없음)
-│   └── FD004/               ← FD004 확장 실험 결과 (같은 구조)
+│   ├── FD004/               ← FD004 확장 실험 결과 (같은 구조)
+│   └── cross_dataset/       ← 교차 검증 결과
 └── docs/
     ├── EASY_GUIDE.md        ← 처음 보는 사람을 위한 쉬운 설명서
     ├── DESIGN_DECISIONS.md  ← 임의 설정값 근거, 오탐·미탐 분석, 분류 vs 회귀 비교
