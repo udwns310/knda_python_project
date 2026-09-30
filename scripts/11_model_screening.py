@@ -22,7 +22,7 @@
   분류(위험 = 잔여 ≤ 위험 기준, common.py DANGER_RUL): LogisticRegression, RandomForest, HistGradientBoosting, IsolationForest(비지도)
                   — 과제 문서 권장 목록(RandomForest, LogisticRegression, IsolationForest, One-Class SVM) 중심
 
-실행: python scripts/11_model_screening.py  (CMAPSS_DATASET으로 FD001/FD004 선택, FD004는 약 30분)
+실행: python scripts/11_model_screening.py  (CMAPSS_DATASET으로 FD001/FD004 선택, FD004는 약 20분)
 결과: outputs/<데이터셋>/metrics/model_screening_*.csv, outputs/<데이터셋>/figures/model_screening.png
 """
 

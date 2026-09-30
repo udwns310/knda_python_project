@@ -27,16 +27,16 @@
      그 이후 처음 돌아오는 정비 슬롯(10~20일 간격)에 정비.
   3) 정비 전에 고장 나면 비계획 정비, 아니면 계획 정비(남은 수명만큼 운행을 덜 함).
   주간 회의 시점·슬롯 간격·슬롯 위치는 매번 달라서 무작위로 200번 반복한 평균을 씁니다.
-  → 경보부터 정비까지 걸리는 시간 = 약 7~33사이클 (평균 약 17사이클)
+  → 경보부터 정비까지 걸리는 시간 = 7~32사이클 (평균 약 17사이클)
 
 [비교 지표] 운행 1사이클당 정비 비용 = 정비 비용 합 ÷ 실제로 운행한 사이클 합
   - N이 너무 크면: 멀쩡한 엔진을 일찍 정비 → 운행 사이클(분모)이 줄어 비쌈
   - N이 너무 작으면: 정비 전에 고장 → 비계획 비용(분자)이 커짐
 
-데이터: validation 엔진(학습에 안 쓴 엔진)의 모든 사이클 예측값 (02·03·04번이 저장한 csv).
+데이터: validation 엔진(학습에 안 쓴 엔진)의 모든 사이클 예측값 (03번 RF·04번 GRU가 저장한 csv).
 공식 test 엔진은 고장 전에 기록이 끊겨 있어 "언제 고장 났는지"를 알 수 없으므로 쓸 수 없습니다.
 
-실행: python scripts/13_threshold_cost.py   (FD004: CMAPSS_DATASET=FD004, 약 1분)
+실행: python scripts/13_threshold_cost.py   (기본 FD004, FD001은 CMAPSS_DATASET=FD001 — 몇 초)
 결과: outputs/<데이터셋>/metrics/threshold_cost.csv, threshold_cost_summary.csv, outputs/<데이터셋>/figures/threshold_cost.png
 """
 

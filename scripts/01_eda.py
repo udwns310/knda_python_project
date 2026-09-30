@@ -51,9 +51,9 @@ train = RegimeCorrector().fit(train, active_sensors).transform(train)
 # 골라서(trendability 분석) health indicator를 만듭니다.
 #
 # 우리 프로젝트에서는 이 아이디어를 다음과 같이 활용했습니다:
-#   - 원문은 먼저 운전조건(regime)을 나누고 조건별로 정규화합니다. FD001은 운전조건이
-#     1가지뿐이라 이 단계가 사실상 필요 없고, 운전조건이 6가지인 FD004를 돌릴 때는
-#     common.py의 운전조건 구분·보정(assign_regime, RegimeCorrector)이 같은 역할을 합니다.
+#   - 원문은 먼저 운전조건(regime)을 나누고 조건별로 정규화합니다. 운전조건이 6가지인 FD004에서는
+#     common.py의 운전조건 구분·보정(assign_regime, RegimeCorrector)이 같은 역할을 합니다
+#     (운전조건이 1가지뿐인 FD001에서는 보정해도 값이 그대로).
 #     (원문은 K-means로 조건을 나누지만, 우리는 운전 설정값 반올림으로 나눔 — common.py 참고)
 #   - "센서별로 사이클과의 상관관계(|corr|)를 구해서 절대값이 큰 순으로 정렬"하는
 #     방식으로 우리 데이터에 맞게 단순화한 trendability 분석을 직접 구현했습니다.
@@ -80,7 +80,7 @@ print(rank.head(8))
 # 3. 대표 엔진 시각화
 # ---------------------------------------------------------------------------
 top_sensors = rank.head(4).index.tolist()
-sample_units = [1, 25, 60]  # 수명이 짧은/중간/긴 엔진 섞어서 하나씩
+sample_units = [1, 25, 60]  # FD004 기준 수명 321·150·218 — 긴/짧은/중간 엔진을 하나씩
 
 fig, axes = plt.subplots(len(top_sensors), 1, figsize=(9, 11), sharex=False)
 for ax, col in zip(axes, top_sensors):

@@ -53,21 +53,21 @@ python scripts/05_evaluate.py
 python scripts/06_domain_interpretation.py
 python scripts/07_export_dashboard.py
 python scripts/08_export_dashboard_ts.py   # 대시보드용 mock.ts 생성 (torch 불필요)
-python scripts/09_classification.py        # 필수 과제: 고장 임박 이진 분류 (FD004 약 10분, 위험 기준 민감도 분석 포함)
+python scripts/09_classification.py        # 필수 과제: 고장 임박 이진 분류 (FD004 약 5분, 위험 기준 민감도 분석 포함)
 ```
 08번이 만든 `outputs/FD004/dashboard_data/mock.ts`를 대시보드 레포의 `src/data/mock.ts`로 복사하면
 대시보드에 반영됩니다.
 필요 패키지는 루트의 `requirements.txt` 참고 (`pip install -r requirements.txt`).
 
 `outputs/<데이터셋>/models/`(학습된 모델 파일)는 용량 때문에 레포에 올리지 않습니다. 03·04번을
-실행하면 자동으로 생성되고, 05·06·07번은 이 파일이 있어야 돌아갑니다.
+실행하면 자동으로 생성되고, 05·06·07·10번은 이 파일이 있어야 돌아갑니다.
 
 ### 추가 실험 (10~14번)
 ```bash
-python scripts/10_cross_dataset.py     # FD001과 FD004 모두 03·04번을 먼저 실행해 둬야 함 (약 1분)
-python scripts/11_model_screening.py   # 후보 모델 비교 (FD004 약 30분, FD001 약 5분)
+python scripts/10_cross_dataset.py     # FD001과 FD004 모두 03·04·09번을 먼저 실행해 둬야 함 (약 1분)
+python scripts/11_model_screening.py   # 후보 모델 비교 (FD004 약 20분, FD001 약 5분)
 python scripts/12_seed_check.py        # GRU·LSTM을 시드 3개로 반복 학습 (GRU 선정 근거) (FD001 약 25분)
-python scripts/13_threshold_cost.py    # 위험 기준 40의 근거 — 정비 비용 시뮬레이션 (02~04번 결과 필요, 몇 초)
+python scripts/13_threshold_cost.py    # 위험 기준 40의 근거 — 정비 비용 시뮬레이션 (03·04번 결과 필요, 몇 초)
 python scripts/14_plot_alarm_rates.py  # 11번 결과 그림 (몇 초)
 ```
 추가 실험은 최종 모델을 고르고 결과를 검증하기 위한 탐색 단계입니다. 과정 진행 가이드의
@@ -82,7 +82,7 @@ python scripts/01_eda.py
 ```
 Git Bash에서는 `CMAPSS_DATASET=FD001 python scripts/01_eda.py` 처럼 앞에 붙이면 됩니다.
 결과는 `outputs/FD001/` 아래에 따로 저장되어 FD004 결과를 덮어쓰지 않습니다. FD001은 데이터가 FD004의 약 1/3이라
-03번 약 2분, 04번 약 4분이면 끝납니다. 10번 교차 검증은 두 데이터셋 모두 03·04번을 실행해 둬야 합니다.
+03번 약 2분, 04번 약 4분이면 끝납니다. 10번 교차 검증은 두 데이터셋 모두 03·04·09번을 실행해 둬야 합니다.
 
 - FD002·FD003을 쓰려면 [NASA PCoE 데이터 저장소](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/)의
   "Turbofan Engine Degradation Simulation" (CMAPSSData.zip)에서 해당 파일 3개를 `data/`에 넣으면 됩니다.
@@ -108,5 +108,5 @@ Git Bash에서는 `CMAPSS_DATASET=FD001 python scripts/01_eda.py` 처럼 앞에 
 ## 재현성
 - 모든 랜덤 요소(train/val 분할, RF, GRU 초기화·배치 순서)에 `seed=42`를 고정해뒀습니다.
   같은 환경에서 위 순서대로 실행하면 같은 숫자가 나옵니다.
-- 딥러닝(GRU)은 PyTorch 버전·CPU 종류에 따라 소수점 수준의 차이가 날 수 있습니다
-  (소수점 수준). 시드를 바꿨을 때의 흔들림은 12번 실험 참고.
+- 딥러닝(GRU)은 PyTorch 버전·CPU 종류에 따라 소수점 수준의 차이가 날 수 있습니다.
+  시드를 바꿨을 때의 흔들림은 12번 실험 참고.

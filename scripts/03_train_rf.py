@@ -66,8 +66,8 @@ X_val, y_val = val_feat[feature_cols], val_feat["RUL"]
 # 2. [임의 설정값 #5] Random Forest 하이퍼파라미터 — 후보 몇 개를 실제로 학습해서
 #    validation MAE가 가장 낮은 조합을 고릅니다 ("감으로 정하지 않고 검증 성능으로
 #    검증했다"는 근거를 남기기 위함입니다). 후보 범위는 데이터 규모(학습 샘플
-#    FD001 기준 약 1.7만 행, 피처 56개)를 고려해 "너무 얕지도, 지나치게 깊어서 과적합
-#    나지도 않을 법한" 상식적인 범위로 잡았습니다.
+#    FD004 약 4.9만 행·피처 60개, FD001 약 1.7만 행·피처 56개)를 고려해 "너무 얕지도, 지나치게
+#    깊어서 과적합 나지도 않을 법한" 상식적인 범위로 잡았습니다. 두 데이터셋 모두 같은 조합이 선택됨.
 # ---------------------------------------------------------------------------
 candidates = [
     {"n_estimators": 100, "max_depth": 8},
@@ -159,7 +159,7 @@ importance.head(20).to_csv(f"{OUT_METRICS}/rf_feature_importance_top20.csv", hea
 print("\n[피처 중요도 상위 10개]")
 print(importance.head(10))
 
-# 모델과 정규화기, 사용 피처 목록을 저장 (04/05/06 스크립트에서 재사용)
+# 모델과 정규화기, 사용 피처 목록을 저장 (06번 센서 중요도, 10번 교차 검증에서 재사용)
 joblib.dump(
     {"model": final_model, "normalizer": norm, "active_sensors": active_sensors,
      "feature_cols": feature_cols, "hyperparams": best},

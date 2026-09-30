@@ -5,7 +5,7 @@
 불러다 쓸 수 있는 형태로 예측 결과를 정리해서 내보냅니다.
 
 ※ 안내: 대시보드가 실제로 읽는 파일(mock.ts)은 이 스크립트가 만든 JSON을 바탕으로
-08_export_dashboard_ts.py가 생성합니다. 여기서 만드는 JSON과 스키마 문서(README.md)는
+08_export_dashboard_ts.py가 생성합니다. 여기서 만드는 JSON과 스키마 문서(docs/DASHBOARD_DATA.md)는
 나중에 백엔드 API로 바꿀 때 응답 형태의 기준으로도 쓸 수 있습니다.
 
 내보내는 파일 (outputs/<데이터셋>/dashboard_data/):

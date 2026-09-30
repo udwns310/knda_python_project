@@ -5,6 +5,6 @@ numpy>=2.0
 scikit-learn>=1.5
 matplotlib>=3.9
 joblib>=1.4
-# PyTorch는 04·05·07번(LSTM)에만 필요. GPU가 없으면 CPU 버전으로 충분합니다:
+# PyTorch는 GRU·LSTM을 쓰는 04·05·07·10·11·12번에 필요. GPU가 없으면 CPU 버전으로 충분합니다:
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch>=2.4
