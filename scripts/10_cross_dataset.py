@@ -7,7 +7,7 @@
   - FD004로 학습한 모델 → FD001 test에 적용
   - 비교 기준: 각 데이터셋에서 직접 학습한 모델(같은 데이터 안에서의 성능)
 
-평가하는 모델: LSTM 회귀, RandomForest 회귀(03·04번에서 저장한 모델 그대로),
+평가하는 모델: GRU 회귀, RandomForest 회귀(03·04번에서 저장한 모델 그대로),
 RandomForest 분류(09번과 같은 설정으로 학습 데이터에서 다시 학습 — 09번은 모델 파일을 저장하지 않음).
 
 정규화 방식 두 가지를 비교합니다 (모델이 받는 입력이 "학습 때와 같은 기준"이어야 하므로 핵심 변수):
@@ -38,7 +38,7 @@ from common import (
     PROJECT_ROOT, DATA, load_raw, add_rul_labels, split_engines,
     Normalizer, build_rf_features, DANGER_RUL, mae, rmse, nasa_score, out_root,
 )
-from seq_models import engine_sequences, predict_recurrent, load_lstm
+from seq_models import engine_sequences, predict_recurrent, load_seq_model
 
 DATASETS = ["FD004", "FD001"]
 OUT_DIR = PROJECT_ROOT / "outputs" / "cross_dataset"
@@ -103,7 +103,7 @@ for src in DATASETS:
 
 rows = []
 for src in DATASETS:
-    lstm, lstm_sensors = load_lstm(str(out_root(src) / "models" / "lstm_model.pt"))
+    gru, gru_sensors = load_seq_model(str(out_root(src) / "models" / "gru_model.pt"))
     rf_pack = joblib.load(out_root(src) / "models" / "rf_model.joblib")
     rf_sensors, feature_cols = rf_pack["active_sensors"], rf_pack["feature_cols"]
     for tgt in DATASETS:
@@ -112,10 +112,10 @@ for src in DATASETS:
             y_true = rul.set_index("unit")["RUL"]
             danger_true = (y_true <= DANGER_RUL).astype(int)
 
-            # LSTM
-            norm = normalizer_for(src, tgt, lstm_sensors, mode)
-            seqs, _, ids = engine_sequences(norm.transform(test), lstm_sensors, has_label=False)
-            p_lstm = pd.Series({u: predict_recurrent(lstm, s)[-1] for u, s in zip(ids, seqs)})
+            # GRU
+            norm = normalizer_for(src, tgt, gru_sensors, mode)
+            seqs, _, ids = engine_sequences(norm.transform(test), gru_sensors, has_label=False)
+            p_gru = pd.Series({u: predict_recurrent(gru, s)[-1] for u, s in zip(ids, seqs)})
 
             # RandomForest 회귀 · 분류 (같은 롤링 특성)
             norm = normalizer_for(src, tgt, rf_sensors, mode)
@@ -126,14 +126,14 @@ for src in DATASETS:
 
             u = y_true.index
             label = "같은 데이터(기준)" if src == tgt else ("A: 원래 기준 그대로" if mode == "A" else "B: 운전조건 보정")
-            for name, reg in (("LSTM 회귀", p_lstm), ("RandomForest 회귀", p_rf)):
+            for name, reg in (("GRU 회귀", p_gru), ("RandomForest 회귀", p_rf)):
                 rows.append({"학습": src, "평가": tgt, "정규화": label, "모델": name,
                              **reg_scores(y_true[u], reg[u]),
                              **cls_scores(danger_true[u], (reg[u] <= DANGER_RUL).astype(int))})
             rows.append({"학습": src, "평가": tgt, "정규화": label, "모델": "RandomForest 분류",
                          "MAE": None, "RMSE": None, "NASA": None,
                          **cls_scores(danger_true[u], (prob[u] >= PROB_THRESHOLD[src]).astype(int))})
-            print(f"  {src} → {tgt} [{label}] LSTM MAE {rows[-3]['MAE']}, RF MAE {rows[-2]['MAE']}, "
+            print(f"  {src} → {tgt} [{label}] GRU MAE {rows[-3]['MAE']}, RF MAE {rows[-2]['MAE']}, "
                   f"분류 F1 {rows[-1]['F1']}")
 
 res = pd.DataFrame(rows)
@@ -144,15 +144,15 @@ with open(OUT_DIR / "cross_dataset_results.json", "w", encoding="utf-8") as f:
 # 그림: 평가 데이터셋별로 "같은 데이터 학습" vs "다른 데이터 학습(A/B)" 비교
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
 for ax, tgt in zip(axes, DATASETS):
-    sub = res[(res["평가"] == tgt) & (res["모델"] == "LSTM 회귀")]
+    sub = res[(res["평가"] == tgt) & (res["모델"] == "GRU 회귀")]
     names = [f"{r['학습']} 학습\n{r['정규화']}" for _, r in sub.iterrows()]
     bars = ax.bar(names, sub["MAE"], color=["tab:blue" if r["학습"] == tgt else "tab:orange" for _, r in sub.iterrows()])
     ax.bar_label(bars, fmt="%.1f")
-    ax.set_title(f"{tgt} test에 적용한 LSTM의 MAE (낮을수록 좋음)")
+    ax.set_title(f"{tgt} test에 적용한 GRU의 MAE (낮을수록 좋음)")
     ax.set_ylabel("MAE (cycle)")
     ax.tick_params(axis="x", labelsize=8)
 fig.suptitle("데이터셋 교차 검증 — 파랑: 같은 데이터로 학습 / 주황: 다른 데이터로 학습", fontsize=11)
 fig.tight_layout()
-fig.savefig(OUT_DIR / "cross_dataset_lstm_mae.png", dpi=120)
+fig.savefig(OUT_DIR / "cross_dataset_gru_mae.png", dpi=120)
 print(f"\n저장: {OUT_DIR}")
 print(res.to_string(index=False))

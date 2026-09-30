@@ -14,7 +14,7 @@
   - 혼동행렬 + Precision·Recall·F1         → 5번 (정확도 단독 보고 안 함)
   - 임곗값 조정 시 보전 관점 근거          → 4번 [임의 설정값 #12]
   - 오탐 1건·미탐 1건 이상을 시계열 위에 → 7번 (그림 2장)
-  - 선택 과제: 회귀 vs 분류 비교           → 5·6번 (LSTM 회귀 예측을 임곗값으로 잘라 같은 조건에서 비교)
+  - 선택 과제: 회귀 vs 분류 비교           → 5·6번 (GRU 회귀 예측을 임곗값으로 잘라 같은 조건에서 비교)
 
 실행 순서: 01 ~ 06 다음 (03·04번의 예측 결과 CSV를 비교용으로, 06번의 센서 해석 결과를 그래프
           센서 선택용으로 읽음, torch 불필요)
@@ -179,8 +179,8 @@ print(f"[임곗값 조정] 0.5 → {prob_th:.2f} (train 교차검증에서 Recal
 # ---------------------------------------------------------------------------
 # 5. 평가: 혼동행렬 + Precision·Recall·F1 (정확도 단독 보고 안 함)
 # ---------------------------------------------------------------------------
-lstm_val = pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")
-lstm_test = pd.read_csv(f"{OUT_METRICS}/lstm_test_predictions.csv")
+gru_val = pd.read_csv(f"{OUT_METRICS}/gru_val_predictions.csv")
+gru_test = pd.read_csv(f"{OUT_METRICS}/gru_test_predictions.csv")
 rf_reg_val = pd.read_csv(f"{OUT_METRICS}/rf_val_predictions.csv")
 rf_reg_test = pd.read_csv(f"{OUT_METRICS}/rf_test_predictions.csv")
 
@@ -194,14 +194,14 @@ val_preds = {
     "RandomForest 분류(임곗값 0.5)": (p_val >= 0.5).astype(int),
     f"RandomForest 분류(임곗값 {prob_th:.2f})": (p_val >= prob_th).astype(int),
     f"RF 회귀→분류(예측 RUL≤{DANGER_RUL})": (align(rf_reg_val, val_feat) <= DANGER_RUL).astype(int),
-    f"LSTM 회귀→분류(예측 RUL≤{DANGER_RUL})": (align(lstm_val, val_feat) <= DANGER_RUL).astype(int),
+    f"GRU 회귀→분류(예측 RUL≤{DANGER_RUL})": (align(gru_val, val_feat) <= DANGER_RUL).astype(int),
 }
 test_preds = {
     "기준모델(이동 Z-score)": (hi_test["HI"].to_numpy() >= tau).astype(int),
     "RandomForest 분류(임곗값 0.5)": (p_test >= 0.5).astype(int),
     f"RandomForest 분류(임곗값 {prob_th:.2f})": (p_test >= prob_th).astype(int),
     f"RF 회귀→분류(예측 RUL≤{DANGER_RUL})": (test_last[["unit"]].merge(rf_reg_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
-    f"LSTM 회귀→분류(예측 RUL≤{DANGER_RUL})": (test_last[["unit"]].merge(lstm_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
+    f"GRU 회귀→분류(예측 RUL≤{DANGER_RUL})": (test_last[["unit"]].merge(gru_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
 }
 
 rows = []
@@ -264,7 +264,7 @@ for n in (20, 30, 40, 50, 60):
     pv = RandomForestClassifier(**RF_PARAMS).fit(X_train, yt).predict_proba(val_feat[feature_cols])[:, 1]
     sens.append({"danger_RUL": n,
                  "RF분류_F1(0.5)": scores(yv, (pv >= 0.5).astype(int))["F1"],
-                 "LSTM회귀→분류_F1": scores(yv, (align(lstm_val, val_feat) <= n).astype(int))["F1"]})
+                 "GRU회귀→분류_F1": scores(yv, (align(gru_val, val_feat) <= n).astype(int))["F1"]})
 sens = pd.DataFrame(sens)
 print("\n[위험 기준별 validation F1]")
 print(sens.to_string(index=False))

@@ -53,7 +53,7 @@ SLOT_INTERVAL = (10, 20)   # 문헌 (1): 정비 슬롯 10~20일 간격
 REVIEW_EVERY = 7           # 문헌 (1): 정비 계획 매주 갱신
 N_SIM = 200                # 무작위 반복 횟수
 N_GRID = list(range(10, 81, 5))
-MODELS = {"LSTM (04번)": "lstm", "RandomForest (03번)": "rf"}
+MODELS = {"GRU (04번)": "gru", "RandomForest (03번)": "rf"}
 OLD_DANGER_RUL = 30        # 이 분석 전에 쓰던 기준 (과제 문서 예시값) — 비교용으로 함께 기록
 
 life = load_raw(TRAIN_FILE).groupby("unit")["cycle"].max()
@@ -124,7 +124,7 @@ print(f"[{DATASET}] validation 엔진 {len(pred['unit'].unique())}대, 경보→
 print(summary.to_string(index=False))
 
 # 비용(비율 두 가지)과 정비 전 고장 비율은 단위가 달라 한 그래프에 겹치지 않고 나란히 그림
-COLORS = {"LSTM (04번)": "#2a78d6", "RandomForest (03번)": "#eb6834"}
+COLORS = {"GRU (04번)": "#2a78d6", "RandomForest (03번)": "#eb6834"}
 fig, axes = plt.subplots(1, 3, figsize=(16, 4.8), sharex=True)
 for ax, (cname, _) in zip(axes[:2], COST_SETTINGS.items()):
     for name in MODELS:
@@ -135,7 +135,7 @@ for ax, (cname, _) in zip(axes[:2], COST_SETTINGS.items()):
         ax.scatter([b["N"]], [b["cost_per_1000_cycles"]], s=90, color=COLORS[name], edgecolor="white",
                    linewidth=2, zorder=5)
         ax.annotate(f"최저 N={int(b['N'])}", (b["N"], b["cost_per_1000_cycles"]), textcoords="offset points",
-                    xytext=(0, -16) if name.startswith("LSTM") else (0, 10), ha="center", fontsize=8)
+                    xytext=(0, -16) if name.startswith("GRU") else (0, 10), ha="center", fontsize=8)
     ax.set_title(f"정비 비용 — 계획:비계획 = {cname}", loc="left", fontsize=10)
     ax.set_ylabel("운행 1,000사이클당 정비 비용\n(계획 정비 1회 = 1)")
 for name in MODELS:

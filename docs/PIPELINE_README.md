@@ -8,11 +8,11 @@ knda_python_project/
   data/                  원본 데이터 (FD004 주, FD001 비교 — train/test/RUL 각 3개 파일)
   scripts/
     common.py                    모든 스크립트가 공유하는 전처리/평가 함수 + 임의 설정값 근거 주석
-    seq_models.py                시계열 딥러닝 모델 정의(LSTM·GRU·1D-CNN)와 학습/예측 함수
+    seq_models.py                시계열 딥러닝 모델 정의(GRU·LSTM·1D-CNN)와 학습/예측 함수
     01_eda.py                    데이터 이해/탐색 (그림 3장 생성)
     02_baseline.py               [선택 과제] RUL 회귀 기준 모델 (평균 수명 − 현재 사이클)
     03_train_rf.py               [선택 과제] RandomForest 회귀
-    04_train_lstm.py             [선택 과제] LSTM 회귀
+    04_train_gru.py              [선택 과제] GRU 회귀 (최종 회귀 모델)
     05_evaluate.py               회귀 모델 비교 + 오류 사례 분석
     06_domain_interpretation.py  도메인 해석 (센서 중요도 vs 추세성)
     07_export_dashboard.py       대시보드용 데이터 export (JSON)
@@ -27,7 +27,7 @@ knda_python_project/
     FD004/               주 결과 (아래 4개 폴더)
       figures/             그래프 이미지 (EDA, 모델비교, 오류사례, 혼동행렬, 피처중요도, 정비 비용)
       metrics/             모델별 성능 수치(json/csv), 예측값(csv)
-      models/              학습된 모델 파일 (rf_model.joblib, lstm_model.pt — 실행 시 생성, 레포에는 없음)
+      models/              학습된 모델 파일 (rf_model.joblib, gru_model.pt — 실행 시 생성, 레포에는 없음)
       dashboard_data/      대시보드 연동용 산출물 (mock.ts 등)
     FD001/               비교 결과 (같은 구조)
     cross_dataset/       10번 교차 검증 결과
@@ -48,7 +48,7 @@ knda_python_project/
 python scripts/01_eda.py
 python scripts/02_baseline.py
 python scripts/03_train_rf.py              # 약 8분 (하이퍼파라미터 후보 4개 비교 포함)
-python scripts/04_train_lstm.py            # 약 15분 (80 epoch 학습, CPU 기준)
+python scripts/04_train_gru.py             # 약 13분 (80 epoch 학습, CPU 기준)
 python scripts/05_evaluate.py
 python scripts/06_domain_interpretation.py
 python scripts/07_export_dashboard.py
@@ -66,7 +66,7 @@ python scripts/09_classification.py        # 필수 과제: 고장 임박 이진
 ```bash
 python scripts/10_cross_dataset.py     # FD001과 FD004 모두 03·04번을 먼저 실행해 둬야 함 (약 1분)
 python scripts/11_model_screening.py   # 후보 모델 비교 (FD004 약 30분, FD001 약 5분)
-python scripts/12_seed_check.py        # LSTM·GRU를 시드 3개로 반복 학습 (FD001 약 25분)
+python scripts/12_seed_check.py        # GRU·LSTM을 시드 3개로 반복 학습 (GRU 선정 근거) (FD001 약 25분)
 python scripts/13_threshold_cost.py    # 위험 기준 40의 근거 — 정비 비용 시뮬레이션 (02~04번 결과 필요, 몇 초)
 python scripts/14_plot_alarm_rates.py  # 11번 결과 그림 (몇 초)
 ```
@@ -106,7 +106,7 @@ Git Bash에서는 `CMAPSS_DATASET=FD001 python scripts/01_eda.py` 처럼 앞에 
   가져다 쓰거나 백엔드 API 응답 형식을 맞추면 됩니다.
 
 ## 재현성
-- 모든 랜덤 요소(train/val 분할, RF, LSTM 초기화·배치 순서)에 `seed=42`를 고정해뒀습니다.
+- 모든 랜덤 요소(train/val 분할, RF, GRU 초기화·배치 순서)에 `seed=42`를 고정해뒀습니다.
   같은 환경에서 위 순서대로 실행하면 같은 숫자가 나옵니다.
-- 딥러닝(LSTM)은 PyTorch 버전·CPU 종류에 따라 소수점 수준의 차이가 날 수 있습니다
-  (예: FD001 test MAE 10.84 ↔ 10.85). 시드를 바꿨을 때의 흔들림은 12번 실험 참고.
+- 딥러닝(GRU)은 PyTorch 버전·CPU 종류에 따라 소수점 수준의 차이가 날 수 있습니다
+  (소수점 수준). 시드를 바꿨을 때의 흔들림은 12번 실험 참고.

@@ -30,11 +30,14 @@
 |---|---|---|---|---|
 | 베이스라인 (평균 수명 − 현재 사이클) | 47.42 | 59.01 | 3,063,392 | 28.08 |
 | Random Forest | 21.81 | 29.07 | 7,139 | 14.19 |
-| **LSTM** | **18.70** | **25.84** | **4,281** | 10.85 |
+| **GRU (최종)** | **17.31** | **25.21** | **4,165** | 9.63 |
+
+GRU가 베이스라인 대비 MAE를 63.5% 줄였습니다. 참고자료 원형인 LSTM(FD004 MAE 18.70)과 후보 8종을 같은 조건에서 비교해
+"위험을 놓치지 않는가 → 괜한 경보가 적은가 → 평균 오차가 작은가" 순서로 골랐습니다 (선정 기준: `docs/DESIGN_DECISIONS.md` #14).
 
 **위험 기준 40의 근거** — 항공 엔진 정비 연구(de Pater et al. 2022, *Reliability Engineering & System Safety*)의 운영 조건
 (정비 준비 7일, 정비 슬롯 10~20일 간격, 계획:비계획 비용 1:5)으로 시뮬레이션했을 때 FD004에서 정비 비용이 가장 낮은 기준.
-30으로 두면 엔진 8대 중 1대가 정비 전에 고장 납니다. → `scripts/13_threshold_cost.py`
+30으로 두면 엔진 7대 중 1대가 정비 전에 고장 납니다. → `scripts/13_threshold_cost.py`
 
 모든 임의 설정값(위험 기준 40, RUL 상한 125, 롤링 창 15, 경보 임곗값 등)의 근거는 [`docs/DESIGN_DECISIONS.md`](docs/DESIGN_DECISIONS.md)에,
 FD004 결과의 자세한 해석은 [`docs/FD004_RESULTS.md`](docs/FD004_RESULTS.md)에 정리했습니다.
@@ -60,7 +63,7 @@ pip install -r requirements.txt
 python scripts/01_eda.py                   # 데이터 탐색 (그림 3장)
 python scripts/02_baseline.py              # RUL 회귀 기준 모델
 python scripts/03_train_rf.py              # RandomForest 회귀 (FD004 약 8분)
-python scripts/04_train_lstm.py            # LSTM 회귀 (FD004 약 15분, torch 필요)
+python scripts/04_train_gru.py             # GRU 회귀 (FD004 약 13분, torch 필요)
 python scripts/05_evaluate.py              # 회귀 모델 비교 + 오류 사례
 python scripts/06_domain_interpretation.py # 센서 중요도 해석
 python scripts/07_export_dashboard.py      # 대시보드용 JSON
@@ -73,7 +76,7 @@ python scripts/09_classification.py        # [필수 과제] 고장 임박 이�
 $env:CMAPSS_DATASET="FD001"    # Git Bash: export CMAPSS_DATASET=FD001
 ```
 모든 무작위 요소는 `seed=42`로 고정되어 있어 같은 순서로 실행하면 같은 결과가 나옵니다
-(LSTM은 PyTorch 버전에 따라 소수점 수준 차이가 있을 수 있음). 추가 실험(10~14번)과 자세한 내용은
+(GRU는 PyTorch 버전에 따라 소수점 수준 차이가 있을 수 있음). 추가 실험(10~14번)과 자세한 내용은
 [`docs/PIPELINE_README.md`](docs/PIPELINE_README.md).
 
 ---
@@ -104,11 +107,11 @@ knda_python_project/
 ├── data/                    ← 원본 데이터 (내려받는 법은 위 참고)
 ├── scripts/
 │   ├── common.py            ← 모든 단계가 공유하는 전처리·평가 함수 + 임의 설정값
-│   ├── seq_models.py        ← 시계열 딥러닝 모델(LSTM·GRU·1D-CNN) 정의
+│   ├── seq_models.py        ← 시계열 딥러닝 모델(GRU·LSTM·1D-CNN) 정의와 학습 함수
 │   ├── 01_eda.py            ← 데이터 이해·탐색
 │   ├── 02_baseline.py       ← RUL 회귀 기준 모델 (센서 미사용)
 │   ├── 03_train_rf.py       ← RandomForest 회귀
-│   ├── 04_train_lstm.py     ← LSTM 회귀
+│   ├── 04_train_gru.py      ← GRU 회귀 (최종 회귀 모델)
 │   ├── 05_evaluate.py       ← 회귀 모델 비교 + 오류 사례
 │   ├── 06_domain_interpretation.py ← 센서 중요도·도메인 해석
 │   ├── 07_export_dashboard.py      ← 대시보드용 JSON
@@ -147,7 +150,7 @@ knda_python_project/
 | 데이터 이해 | 비행 조건 6개를 운전 설정값으로 구분, 조건 안에서 값이 변하지 않는 센서 6개 + 운전 설정 3개 제거 → 센서 15개 | `01`, `common.py` |
 | 전처리 | RUL 라벨(125에서 자름), 운전조건별 Z-score 정규화(train 통계만), 엔진 단위 80:20 분할 | `common.py` |
 | 시계열 분석 | 최근 15사이클 이동평균·이동표준편차·기울기 특성, 운전조건 보정값으로 추세성 랭킹 | `01`, `common.py` |
-| 기준 모델 · ML | 이동 Z-score 기준 모델 → RandomForest 분류 / 베이스라인 → RF·LSTM 회귀 | `02~04`, `09` |
+| 기준 모델 · ML | 이동 Z-score 기준 모델 → RandomForest 분류 / 베이스라인 → RF·GRU 회귀 | `02~04`, `09` |
 | 평가 · 오류 분석 | 혼동행렬, 경보 임곗값 조정 근거(보전 비용), 오탐(#179)·미탐(#245) 사례 | `05`, `09` |
 | 도메인 해석 | 핵심 센서 = 고압압축기 출구 온도(s3)·블리드 엔탈피(s17)·팬 속도(s8), 첫 경보 고장 약 35사이클 전 | `06`, `09` |
 
@@ -176,7 +179,7 @@ knda_python_project/
 - Saxena, A., Goebel, K., Simon, D., Eklund, N. "Damage Propagation Modeling for Aircraft Engine Run-to-Failure Simulation", PHM 2008 — 데이터, 센서 대응표, NASA score
 - de Pater, I., Reijns, A., Mitici, M. "Alarm-based predictive maintenance scheduling for aircraft engines with imperfect Remaining Useful Life prognostics", *Reliability Engineering & System Safety* 221, 108341 (2022) — 정비 준비 기간·정비 슬롯·비용 비율 (위험 기준 40의 근거)
 - Lee, J., Mitici, M. "Deep reinforcement learning for predictive aircraft maintenance using probabilistic Remaining-Useful-Life prognostics", *Reliability Engineering & System Safety* 230, 108908 (2023) — 비용 비율 민감도
-- MathWorks, [Sequence-to-Sequence Regression Using Deep Learning](https://www.mathworks.com/help/deeplearning/ug/sequence-to-sequence-regression-using-deep-learning.html) — RUL 클리핑, LSTM 구조
+- MathWorks, [Sequence-to-Sequence Regression Using Deep Learning](https://www.mathworks.com/help/deeplearning/ug/sequence-to-sequence-regression-using-deep-learning.html) — RUL 클리핑, 순환 신경망 구조·학습 설정 (순환층만 LSTM → GRU로 교체)
 - MathWorks, [Similarity-Based Remaining Useful Life Estimation](https://www.mathworks.com/help/predmaint/ug/similarity-based-remaining-useful-life-estimation.html) — 추세성 분석, 운전조건별 정규화
 
 참고자료를 어떻게 활용했고 어디를 바꿨는지는 `docs/DESIGN_DECISIONS.md` "참고자료 활용 내역"에 정리했습니다.

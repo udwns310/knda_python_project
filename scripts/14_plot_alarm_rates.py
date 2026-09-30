@@ -99,7 +99,7 @@ def place_labels(ax, xs, ys, labels, fontsize=9):
 
 
 # ── 두 번째 그림: MAE vs 경보 오류율 산점도 + 회귀선 ─────────────────────────
-SHORT = {"GRU": "GRU", "LSTM (04번)": "LSTM", "MLP (신경망 64-32)": "MLP", "1D-CNN (30사이클 창)": "1D-CNN",
+SHORT = {"GRU (04번)": "GRU", "LSTM (MathWorks 원형)": "LSTM", "MLP (신경망 64-32)": "MLP", "1D-CNN (30사이클 창)": "1D-CNN",
          "HistGradientBoosting": "HistGB", "ExtraTrees": "ExtraTrees", "RandomForest (03번)": "RF",
          "Ridge (선형회귀)": "Ridge"}
 base = rates[rates["type"] == "기준"].iloc[0]

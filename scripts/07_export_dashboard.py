@@ -28,7 +28,7 @@ from common import (
     load_raw, add_rul_labels, split_engines, Normalizer, RegimeCorrector,
     risk_level,  # 위험도 등급 구간 [임의 설정값 #7]은 common.py 7번 섹션에 있습니다.
 )
-from seq_models import load_lstm, predict_recurrent
+from seq_models import load_seq_model, predict_recurrent
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
 from common import OUT_METRICS, OUT_DASH, OUT_MODELS, TRAIN_FILE, TEST_FILE, RUL_FILE
@@ -43,9 +43,9 @@ comparison.to_json(f"{OUT_DASH}/model_comparison.json", orient="records", force_
 print(f"저장: {OUT_DASH}/model_comparison.json")
 
 # ---------------------------------------------------------------------------
-# 2. LSTM 모델 재로드 (엔진별 상세 시계열 생성용, 04번에서 저장한 가중치)
+# 2. GRU 모델 재로드 (엔진별 상세 시계열 생성용, 04번에서 저장한 가중치)
 # ---------------------------------------------------------------------------
-model, active_sensors = load_lstm(f"{OUT_MODELS}/lstm_model.pt")
+model, active_sensors = load_seq_model(f"{OUT_MODELS}/gru_model.pt")
 
 train_raw = load_raw(TRAIN_FILE)
 train_raw = add_rul_labels(train_raw)

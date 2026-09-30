@@ -49,13 +49,14 @@ from common import (
 #  바뀔 때마다 다시 골라야 해서 2026-09-30 규칙 기반으로 바꿈)
 N_RED, N_YELLOW = 4, 2
 FEATURED_WINDOW = 25
+MODEL_NAME = "GRU"  # 04번 최종 회귀 모델 (대시보드 문구가 dataMeta.model로 읽음)
 DATASET_DESC = {"FD001": "운전조건 1종 · 고장모드 1종", "FD002": "운전조건 6종 · 고장모드 1종",
                 "FD003": "운전조건 1종 · 고장모드 2종", "FD004": "운전조건 6종 · 고장모드 2종"}
 
 # ---------------------------------------------------------------------------
 # [임의 설정값 #9] RUL 신뢰구간 · 생존곡선 계산 방식
 # ---------------------------------------------------------------------------
-# LSTM은 "RUL = 15.6" 같은 숫자 하나만 내놓습니다. 그 숫자가 얼마나 믿을 만한지를
+# GRU는 "RUL = 15.6" 같은 숫자 하나만 내놓습니다. 그 숫자가 얼마나 믿을 만한지를
 # 보여주기 위해, 검증셋(학습에 안 쓴 20개 엔진)에서 모델이 "비슷한 값을 예측했던"
 # 순간들을 모아 그때 실제 RUL이 어땠는지를 봅니다.
 #   예) 예측이 15.6이면, 검증셋에서 예측이 5.6~25.6 사이였던 순간들을 모아서
@@ -128,7 +129,7 @@ def load_timeseries(unit: int) -> dict:
 train_raw = load_raw(TRAIN_FILE)
 
 # 검증셋 예측 + 자르지 않은 실제 RUL (= 그 엔진의 마지막 사이클 - 현재 사이클)
-val = pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")
+val = pd.read_csv(f"{OUT_METRICS}/gru_val_predictions.csv")
 life = train_raw.groupby("unit")["cycle"].max()
 val["RUL_raw"] = val["unit"].map(life) - val["cycle"]
 val_units = np.sort(val["unit"].unique())
@@ -362,11 +363,12 @@ data_meta = {
     "dataset": f"C-MAPSS {DATASET}",
     "datasetDescription": DATASET_DESC[DATASET],
     "sensorValues": "운전조건 보정값" if MULTI_REGIME else "원본값",
+    "model": MODEL_NAME,
     "testEngines": n_engines,
     "selectedEngines": [int(r["id"].split("-")[1]) for r in ranking],
     "featuredEngine": featured,
     "note": f"시간축은 엔진 운행 사이클(cycle). 위험 등급(RED/YELLOW/GREEN)은 예측 RUL 기준(≤{red}/<{yellow}/그 외). "
-            "비용·정비시간은 가정값(08_export_dashboard_ts.py COST_ASSUMPTIONS), 탐지 성능(TP/FN/FP)은 LSTM 모델의 실제 test set 결과. "
+            f"비용·정비시간은 가정값(08_export_dashboard_ts.py COST_ASSUMPTIONS), 탐지 성능(TP/FN/FP)은 {MODEL_NAME} 모델의 실제 test set 결과. "
             "RUL 신뢰구간·생존곡선은 검증셋에서 예측이 비슷했던 사례들의 실제 RUL 분포.",
 }
 
@@ -377,7 +379,7 @@ J = lambda obj: json.dumps(obj, ensure_ascii=False, indent=2)
 
 ts_code = f"""// ⚠️ 자동 생성 파일 — 분석 레포의 scripts/08_export_dashboard_ts.py 가 만든다.
 // 직접 고치지 말고 파이썬 파이프라인을 다시 돌려서 새로 받아올 것.
-// 원본 데이터: C-MAPSS {DATASET} ({DATASET_DESC[DATASET]}, NASA 터보팬 엔진 열화 시뮬레이션), 모델: LSTM Seq2Seq
+// 원본 데이터: C-MAPSS {DATASET} ({DATASET_DESC[DATASET]}, NASA 터보팬 엔진 열화 시뮬레이션), 모델: {MODEL_NAME} Seq2Seq 회귀
 // (분석 레포 docs/DESIGN_DECISIONS.md, 이 레포 docs/DATA_MAPPING.md 참고)
 // 시간축은 엔진 운행 '사이클(cycle)' 입니다.
 
@@ -500,7 +502,7 @@ export const DEFAULT_ENGINE_ID = 'engine-{featured}'
 /** 센서 추이 3종 (06번 RF 중요도 상위 센서) — 값은 {"운전조건 보정값" if MULTI_REGIME else "원본값"} */
 export const trendMeta: Record<string, {{ unit: string; label: string; domain: [number, number] }}> = {J(trend_meta)}
 
-/** 위험 등급(RUL≤{red}) 조기경보 성능 — LSTM 모델, 공식 test {n_engines}개 엔진 기준 실제 계산값
+/** 위험 등급(RUL≤{red}) 조기경보 성능 — {MODEL_NAME} 모델, 공식 test {n_engines}개 엔진 기준 실제 계산값
  *  (TP={tp}, FN={fn}, FP={fp}) */
 export const classifierMetrics = {J(classifier_metrics)}
 
@@ -508,7 +510,7 @@ export const classifierMetrics = {J(classifier_metrics)}
 export const featureImportance = {J(feature_importance)}
 
 /** AS-IS(사후 정비: 고장까지 운용) vs TO-BE(예지보전: RUL 기반 사전 정비) 비용 시뮬레이션.
- *  탐지/누락/오탐 건수는 LSTM 모델의 실제 test set 결과, 금액·시간 가정은 항공 엔진 정비
+ *  탐지/누락/오탐 건수는 {MODEL_NAME} 모델의 실제 test set 결과, 금액·시간 가정은 항공 엔진 정비
  *  맥락의 illustrative 값입니다 (분석 레포 scripts/08_export_dashboard_ts.py 참고). */
 export const scenarioCompare = {J(scenario["metrics"])}
 

@@ -88,48 +88,48 @@
       "test_F1": 0.902
     },
     {
-      "model": "LSTM 회귀→분류(예측 RUL≤40)",
-      "val_TP": 769,
-      "val_FN": 51,
-      "val_FP": 44,
-      "val_TN": 2988,
-      "val_precision": 0.946,
-      "val_recall": 0.938,
-      "val_F1": 0.942,
-      "test_TP": 28,
-      "test_FN": 0,
+      "model": "GRU 회귀→분류(예측 RUL≤40)",
+      "val_TP": 785,
+      "val_FN": 35,
+      "val_FP": 52,
+      "val_TN": 2980,
+      "val_precision": 0.938,
+      "val_recall": 0.957,
+      "val_F1": 0.947,
+      "test_TP": 27,
+      "test_FN": 1,
       "test_FP": 1,
       "test_TN": 71,
-      "test_precision": 0.966,
-      "test_recall": 1.0,
-      "test_F1": 0.982
+      "test_precision": 0.964,
+      "test_recall": 0.964,
+      "test_F1": 0.964
     }
   ],
   "danger_threshold_sensitivity": [
     {
       "danger_RUL": 20,
       "RF분류_F1(0.5)": 0.919,
-      "LSTM회귀→분류_F1": 0.88
+      "GRU회귀→분류_F1": 0.927
     },
     {
       "danger_RUL": 30,
       "RF분류_F1(0.5)": 0.893,
-      "LSTM회귀→분류_F1": 0.923
+      "GRU회귀→분류_F1": 0.938
     },
     {
       "danger_RUL": 40,
       "RF분류_F1(0.5)": 0.906,
-      "LSTM회귀→분류_F1": 0.942
+      "GRU회귀→분류_F1": 0.947
     },
     {
       "danger_RUL": 50,
       "RF분류_F1(0.5)": 0.892,
-      "LSTM회귀→분류_F1": 0.927
+      "GRU회귀→분류_F1": 0.952
     },
     {
       "danger_RUL": 60,
       "RF분류_F1(0.5)": 0.874,
-      "LSTM회귀→분류_F1": 0.9
+      "GRU회귀→분류_F1": 0.933
     }
   ],
   "lead_time": {

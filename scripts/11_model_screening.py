@@ -1,7 +1,9 @@
 """
 11_model_screening.py
 =====================
-탐색 실험: "LSTM이 정말 최선인가? 다른 모델은?" — 후보 모델을 같은 조건에서 한 번씩 돌려 비교합니다.
+탐색 실험: "어떤 모델이 최선인가?" — 후보 모델을 같은 조건에서 한 번씩 돌려 비교하고, 최종 모델 선정 근거로 씁니다.
+(처음 최종 모델은 참고자료 원형인 LSTM이었으나, 이 비교에서 GRU가 미탐·헛경보·MAE 모두 앞서 04번 최종 모델을
+ GRU로 바꿨습니다 — 선정 기준은 docs/DESIGN_DECISIONS.md 임의 설정값 #14)
 
 과제 규칙("머신러닝 모델은 1~2종(최대 3종)만 사용")은 **최종 보고서에 쓰는 모델** 기준입니다. 이 스크립트는
 최종 모델을 고르기 위한 근거를 남기는 탐색 단계이고, 보고서 본문에는 여기서 고른 최대 3종만 씁니다.
@@ -10,13 +12,13 @@
 공정한 비교를 위해 모든 후보가 같은 것을 씁니다:
   - 같은 엔진 분할(seed=42, 80:20), 같은 정규화(운전조건별 Z-score), 같은 입력
     · 표 형태 모델: 03번 RandomForest와 같은 롤링 특성 (센서 현재값 + 최근 15사이클 평균·표준편차·기울기)
-    · 시계열 모델: 04번 LSTM과 같은 센서 시퀀스
+    · 시계열 모델: 04번 GRU와 같은 센서 시퀀스
   - 같은 평가: validation = 검증 엔진의 모든 사이클, test = 공식 test 엔진의 마지막 관측 시점
-  - 하이퍼파라미터 탐색 없이 기본값 수준 (RandomForest·LSTM은 03·04번 결과를 그대로 가져옴)
+  - 하이퍼파라미터 탐색 없이 기본값 수준 (RandomForest·GRU는 03·04번 결과를 그대로 가져옴)
 
 후보
   회귀(RUL 숫자 예측): Ridge(선형), RandomForest, ExtraTrees, HistGradientBoosting(부스팅), MLP(얕은 신경망),
-                       LSTM, GRU, 1D-CNN
+                       GRU(04번 최종), LSTM(MathWorks 원형), 1D-CNN
   분류(위험 = 잔여 ≤ 위험 기준, common.py DANGER_RUL): LogisticRegression, RandomForest, HistGradientBoosting, IsolationForest(비지도)
                   — 과제 문서 권장 목록(RandomForest, LogisticRegression, IsolationForest, One-Class SVM) 중심
 
@@ -41,7 +43,7 @@ from common import (
     SENSOR_COLS_RAW, DANGER_RUL, mae, rmse, nasa_score,
     DATASET, TRAIN_FILE, TEST_FILE, RUL_FILE, OUT_METRICS, OUT_FIG,
 )
-from seq_models import engine_sequences, train_recurrent, predict_recurrent, train_cnn, predict_cnn, RULGRU
+from seq_models import engine_sequences, train_recurrent, predict_recurrent, train_cnn, predict_cnn, RULLSTM
 
 SEED = 42
 
@@ -102,9 +104,9 @@ for name, model in tabular.items():
     reg_rows.append(reg_row(name, "표 형태", p_val, p_test, time.time() - t0))
     print(f"  {name}: val MAE {reg_rows[-1]['val_MAE']}, test MAE {reg_rows[-1]['test_MAE']} ({reg_rows[-1]['seconds']}초)")
 
-# 02·03·04번에서 이미 학습·평가한 베이스라인, RandomForest, LSTM은 그 결과를 그대로 씀 (같은 분할·정규화)
+# 02·03·04번에서 이미 학습·평가한 베이스라인, RandomForest, GRU는 그 결과를 그대로 씀 (같은 분할·정규화)
 for name, kind, fname in (("베이스라인 (02번, 센서 미사용)", "기준", "baseline"),
-                          ("RandomForest (03번)", "표 형태", "rf"), ("LSTM (04번)", "시계열", "lstm")):
+                          ("RandomForest (03번)", "표 형태", "rf"), ("GRU (04번)", "시계열", "gru")):
     with open(f"{OUT_METRICS}/{fname}_metrics.json", encoding="utf-8") as f:
         m = json.load(f)
     v, t = m["validation"], m["official_test"]
@@ -122,7 +124,8 @@ test_seqs, _, test_ids = engine_sequences(test_df, sensors, has_label=False)
 order = pd.Series(range(len(test_ids)), index=test_ids).loc[y_test.index]
 
 for name, fit, predict in (
-    ("GRU", lambda: train_recurrent(RULGRU, train_seqs, train_labels, len(sensors), SEED), predict_recurrent),
+    ("LSTM (MathWorks 원형)", lambda: train_recurrent(RULLSTM, train_seqs, train_labels, len(sensors), SEED),
+     predict_recurrent),
     ("1D-CNN (30사이클 창)", lambda: train_cnn(train_seqs, train_labels, len(sensors), SEED), predict_cnn),
 ):
     t0 = time.time()
@@ -176,11 +179,11 @@ cls_rows.append(cls_row("IsolationForest (비지도)", (s_va >= th).astype(int),
 print(f"  IsolationForest: val F1 {cls_rows[-1]['val_F1']}, test F1 {cls_rows[-1]['test_F1']}")
 
 # 참고: 회귀 모델의 예측 RUL을 위험 기준(DANGER_RUL)으로 잘라 분류로 쓴 결과 (09번 "회귀→분류"와 같은 방식)
-for name in ("LSTM (04번)",):
-    pv = (pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")["RUL_pred"] <= DANGER_RUL).astype(int)
-    lt = pd.read_csv(f"{OUT_METRICS}/lstm_test_predictions.csv").set_index("unit").loc[y_test.index]
-    vt = pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")
-    cls_rows.append({"model": f"LSTM 회귀 → RUL≤{DANGER_RUL} (참고)",
+for name in ("GRU (04번)",):
+    pv = (pd.read_csv(f"{OUT_METRICS}/gru_val_predictions.csv")["RUL_pred"] <= DANGER_RUL).astype(int)
+    lt = pd.read_csv(f"{OUT_METRICS}/gru_test_predictions.csv").set_index("unit").loc[y_test.index]
+    vt = pd.read_csv(f"{OUT_METRICS}/gru_val_predictions.csv")
+    cls_rows.append({"model": f"GRU 회귀 → RUL≤{DANGER_RUL} (참고)",
                      "val_F1": round(f1_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
                      "val_Precision": round(precision_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
                      "val_Recall": round(recall_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
