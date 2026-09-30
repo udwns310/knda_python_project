@@ -6,7 +6,7 @@
 
 07번이 만든 JSON(engines_summary.json, engine_timeseries/*.json)과 04·05·06번의 결과를
 읽어서, 대시보드 화면이 기대하는 모양(TypeScript 상수/함수)으로 바꿔 씁니다.
-출력: outputs/dashboard_data/mock.ts  →  대시보드 레포의 src/data/mock.ts 로 복사
+출력: outputs/<데이터셋>/dashboard_data/mock.ts  →  대시보드 레포의 src/data/mock.ts 로 복사
 
 실행 순서: 01 → ... → 07 → 08 (torch 없이도 실행됩니다. 06·07번 결과 파일만 있으면 됨)
 대시보드는 과제 제출물이 아닌 발표·시연용이며, 설계 근거는 대시보드 레포의 docs/DATA_MAPPING.md에 있습니다.
@@ -29,38 +29,28 @@ import numpy as np
 import pandas as pd
 
 from common import (
-    load_raw, RUL_CLIP_VALUE, RISK_THRESHOLDS,
+    load_raw, RUL_CLIP_VALUE, RISK_THRESHOLDS, SENSOR_UNIT, RegimeCorrector, MULTI_REGIME,
     OUT_METRICS, OUT_DASH, TRAIN_FILE, DATASET,
 )
 
-# 대시보드(발표·시연용)는 FD001 결과로 만듭니다. 엔진 9대 선정·대표 엔진 등 아래 설정이 FD001
-# 결과를 보고 고른 값이라, 다른 서브셋에서는 실행하지 않습니다.
-if DATASET != "FD001":
-    raise SystemExit(f"08번(대시보드 mock.ts)은 FD001 전용입니다 (지금 데이터셋: {DATASET}). 01~07, 09번 결과를 보세요.")
-
 # ---------------------------------------------------------------------------
-# [임의 설정값 #8] 대시보드에 보여줄 엔진 9대
+# [임의 설정값 #8] 대시보드에 보여줄 엔진 9대 · 대표 엔진 (규칙으로 자동 선정)
 # ---------------------------------------------------------------------------
 # 대시보드 화면(카드 9개)은 원래 TCM 주제의 "스탠드 여러 개"를 보여주던 자리라서,
-# test 엔진 100대를 다 넣지 않고 발표 데모용으로 9대를 골랐습니다. 규칙으로 뽑은 게
-# 아니라 등급별로 골고루 보이도록 사람이 고른 목록입니다:
-#   위험(RED) 5대  : 예측 RUL이 가장 낮은 4대(34, 42, 81, 76) + 대표 엔진 37
-#   주의(YELLOW) 2대: 91, 62 (주의 등급 중 위험 경계(30)에 가장 가까운 엔진)
-#   정상(GREEN) 2대 : 43(정상 중 가장 낮음 = 곧 주의로 넘어갈 엔진), 47(가장 여유 있음)
-# 2026-09-29 위험 기준을 20 → 30으로 바꾸면서 예전 주의 엔진(56, 18)이 위험으로 넘어가
-# 주의 2대를 다시 골랐습니다. 모델을 다시 학습해서 등급이 바뀌면 이 목록도 다시 골라야
-# 합니다 (아래에서 등급이 예상과 다르면 멈추고 알려줍니다).
-SELECTED_ENGINES = [34, 42, 81, 76, 37, 91, 62, 43, 47]
-EXPECTED_LEVELS = {"RED": 5, "YELLOW": 2, "GREEN": 2}
-
-# 메인 차트(모니터링 화면)에 보여줄 "대표 엔진"과 마지막 몇 사이클을 보여줄지.
-# 대표 엔진 조건: 위험(RED) 엔진 중 마지막 25사이클 창 "안에서" 정상→주의→위험 두 번의
-# 임계값 교차가 모두 보이는 엔진 (발표에서 열화 과정을 한 화면에 보여주기 위함).
-# 조건을 만족하는 엔진이 여러 대라, 처음 연동 때부터 써 온 #37을 고정해 발표 자료와
-# 대시보드 화면이 계속 일치하도록 했습니다 (조건을 만족하는지는 아래에서 검사합니다).
+# test 엔진을 다 넣지 않고 발표 데모용으로 9대를 고릅니다. 등급별로 골고루 보이도록:
+#   위험(RED) 5대   : 대표 엔진 + 예측 RUL이 가장 낮은 4대
+#   주의(YELLOW) 2대: 주의 등급 중 위험 경계에 가장 가까운(예측 RUL이 낮은) 2대
+#   정상(GREEN) 2대 : 정상 중 가장 낮은 1대(곧 주의로 넘어갈 엔진) + 가장 여유 있는 1대
+# 대표 엔진(모니터링 화면의 메인 차트): 위험 엔진 중 마지막 25사이클 창 "안에서" 정상→주의→위험
+# 두 번의 경계 교차가 모두 보이는 엔진 가운데 예측 RUL이 가장 크게 떨어지는 엔진 (열화 과정을 한
+# 화면에 보여주기 위함). 조건을 만족하는 엔진이 없으면 창 안에서 가장 크게 떨어지는 위험 엔진.
 # 창 길이 25는 기존 대시보드의 시간 슬라이더(0~24, 25칸) 구조에 맞춘 값입니다.
-FEATURED_ENGINE = 37
+# (처음에는 FD001 결과를 보고 사람이 고른 고정 목록이었으나, FD004 중심으로 바꾸고 위험 기준이
+#  바뀔 때마다 다시 골라야 해서 2026-09-30 규칙 기반으로 바꿈)
+N_RED, N_YELLOW = 4, 2
 FEATURED_WINDOW = 25
+DATASET_DESC = {"FD001": "운전조건 1종 · 고장모드 1종", "FD002": "운전조건 6종 · 고장모드 1종",
+                "FD003": "운전조건 1종 · 고장모드 2종", "FD004": "운전조건 6종 · 고장모드 2종"}
 
 # ---------------------------------------------------------------------------
 # [임의 설정값 #9] RUL 신뢰구간 · 생존곡선 계산 방식
@@ -77,7 +67,7 @@ FEATURED_WINDOW = 25
 #
 # NEIGHBOR_RADIUS = 10: 너무 좁으면(예: 2) 모이는 사례가 적어 분포가 들쭉날쭉하고,
 #   너무 넓으면(예: 30) RUL 10과 40처럼 전혀 다른 상황이 섞입니다. 10이면 위험·주의
-#   등급 구간 폭(각 30 cycle)의 3분의 1이라 등급이 크게 섞이지 않으면서 사례가 수백 개 모입니다.
+#   등급 구간 폭(각 40 cycle)의 4분의 1이라 등급이 크게 섞이지 않으면서 사례가 수백 개 모입니다.
 # MIN_NEIGHBORS = 30: 반경 안 사례가 30개보다 적으면 가장 가까운 30개를 씁니다
 #   (통계에서 분포 모양을 볼 때 흔히 쓰는 최소 표본 수 관례).
 # 실제 RUL은 125로 자르지 않은 원래 값을 씁니다 (공식 test 정답도 자르지 않은 값이라서).
@@ -93,8 +83,10 @@ BOOTSTRAP_SEED = 42
 SURVIVAL_GRID = [0, 10, 20, 30, 40, 60, 80, 100, 120, 140]  # 기존 화면의 x축 눈금 그대로
 
 # 센서 추이 차트에 보여줄 점 개수 (엔진 전체 관측 구간에서 고르게 9점 추출)
+# 보여줄 센서는 06번 RF 중요도 상위 3개 (FD004: s3·s17·s8, FD001: s4·s9·s3) — 아래 1번에서 결정.
+# 값은 07번이 저장한 운전조건 보정값 (FD004는 비행 조건마다 원본값이 크게 튀어서 추세가 안 보이므로).
 SENSOR_TREND_POINTS = 9
-TREND_SENSORS = {"s4": "°R", "s9": "rpm", "s3": "°R"}  # RF 중요도 상위 3개 센서와 단위
+N_TREND_SENSORS = 3
 TREND_DOMAIN_PAD = 0.10  # y축 범위 = train 전체 최소~최대에 범위의 10%씩 여유
 
 # ---------------------------------------------------------------------------
@@ -143,6 +135,7 @@ val_units = np.sort(val["unit"].unique())
 
 with open(f"{OUT_METRICS}/domain_interpretation.json", encoding="utf-8") as f:
     domain = json.load(f)
+TREND_SENSORS = list(domain["top_sensors_rf"])[:N_TREND_SENSORS]
 
 # ---------------------------------------------------------------------------
 # 2. 신뢰구간 · 생존곡선 ([임의 설정값 #9])
@@ -191,6 +184,27 @@ def health_of(p: float) -> int:
     return int(round(min(100.0, 100.0 * p / RUL_CLIP_VALUE)))
 
 
+red, yellow = RISK_THRESHOLDS["red_at_or_below"], RISK_THRESHOLDS["yellow_below"]
+
+
+def window_curve(u: int) -> list:
+    return load_timeseries(u)["predicted_RUL_curve"][-FEATURED_WINDOW:]
+
+
+# 대표 엔진 ([임의 설정값 #8])
+red_units = summary.index[summary["risk_level"] == "RED"]
+drops = {int(u): window_curve(u)[0] - min(window_curve(u)) for u in red_units if len(window_curve(u)) == FEATURED_WINDOW}
+candidates = [u for u in drops if window_curve(u)[0] >= yellow and min(window_curve(u)) <= red]
+featured = max(candidates or drops, key=lambda u: drops[u])
+
+# 엔진 9대 ([임의 설정값 #8])
+by_level = {lv: summary[summary["risk_level"] == lv].sort_values("predicted_RUL") for lv in ("RED", "YELLOW", "GREEN")}
+if len(by_level["RED"]) < N_RED + 1 or len(by_level["YELLOW"]) < N_YELLOW or len(by_level["GREEN"]) < 2:
+    raise SystemExit(f"등급별 엔진 수가 부족합니다: { {k: len(v) for k, v in by_level.items()} }")
+SELECTED_ENGINES = ([featured] + [int(u) for u in by_level["RED"].index if u != featured][:N_RED]
+                    + [int(u) for u in by_level["YELLOW"].index[:N_YELLOW]]
+                    + [int(by_level["GREEN"].index[0]), int(by_level["GREEN"].index[-1])])
+
 ranking, details = [], {}
 for u in SELECTED_ENGINES:
     p = float(summary.loc[u, "predicted_RUL"])
@@ -206,12 +220,12 @@ for u in SELECTED_ENGINES:
     last_cycle = int(summary.loc[u, "last_observed_cycle"])
     details[f"engine-{u}"] = {
         "equipmentInfo": {
-            "line": "터보팬 엔진 · C-MAPSS FD001 (운전조건 1종)",
+            "line": f"터보팬 엔진 · C-MAPSS {DATASET} ({DATASET_DESC[DATASET]})",
             "installedAt": "—(데이터에 없음)",
             "lastMaintenance": "—(단일 run-to-failure 데이터, 실제 교체 이력 없음)",
             "team": "5조 감시자들",
             "operatingCycles": last_cycle,
-            "modelNo": "Turbofan (FD001)",
+            "modelNo": f"Turbofan ({DATASET})",
         },
         "predictedRulCycle": interval,
         "survivalCurve": curve,
@@ -230,32 +244,15 @@ for u in SELECTED_ENGINES:
 
 ranking.sort(key=lambda r: r["health"])
 
-levels = summary.loc[SELECTED_ENGINES, "risk_level"].value_counts().to_dict()
-if levels != EXPECTED_LEVELS:
-    raise SystemExit(f"선택한 9대의 등급 분포가 {levels}로 바뀌었습니다 (기대: {EXPECTED_LEVELS}) — "
-                     f"모델이나 기준이 바뀐 것이니 SELECTED_ENGINES를 다시 골라주세요.")
-
 # ---------------------------------------------------------------------------
-# 4. 대표 엔진 (모니터링 화면 메인 차트 + 경보 로그)
+# 4. 대표 엔진 (모니터링 화면 메인 차트 + 경보 로그) — 선정 규칙은 위 3번
 # ---------------------------------------------------------------------------
-# 대표 엔진 조건 검사 (맨 위 FEATURED_ENGINE 설명 참고)
-red, yellow = RISK_THRESHOLDS["red_at_or_below"], RISK_THRESHOLDS["yellow_below"]
-candidates = []
-for u in sorted(summary.index[summary["risk_level"] == "RED"]):
-    v = load_timeseries(u)["predicted_RUL_curve"][-FEATURED_WINDOW:]
-    if len(v) == FEATURED_WINDOW and v[0] >= yellow and min(v) <= red:
-        candidates.append(int(u))
-featured = FEATURED_ENGINE
-if featured not in candidates or featured not in SELECTED_ENGINES:
-    raise SystemExit(f"대표 엔진 #{featured}이 조건을 만족하지 않거나 SELECTED_ENGINES에 없습니다 "
-                     f"(조건 만족 엔진: {candidates}) — FEATURED_ENGINE을 다시 골라주세요.")
-
 ts = load_timeseries(featured)
 cyc = ts["cycles"][-FEATURED_WINDOW:]
 rul = ts["predicted_RUL_curve"][-FEATURED_WINDOW:]
 sensor_series = [{"t": f"#{c}", "h": h, "v": round(float(v), 2)} for h, (c, v) in enumerate(zip(cyc, rul))]
 
-first_warn = next(h for h, v in enumerate(rul) if v < yellow)
+first_warn = next((h for h, v in enumerate(rul) if v < yellow), 0)
 first_crit = next(h for h, v in enumerate(rul) if v <= red)
 alert_log = [
     {"h": first_crit, "time": f"cycle #{cyc[first_crit]}", "equipment": f"Engine #{featured}", "sensor": "예측 RUL",
@@ -266,7 +263,7 @@ alert_log = [
 anomaly_window = {"start": first_crit, "end": FEATURED_WINDOW - 1}
 
 # ---------------------------------------------------------------------------
-# 5. 조기경보 성능 (예측 RUL ≤ 30 을 "위험"으로 보는 신호등 규칙, 공식 test 100대 마지막 시점)
+# 5. 조기경보 성능 (예측 RUL ≤ 위험 기준을 "위험"으로 보는 신호등 규칙, 공식 test 엔진의 마지막 시점)
 # ---------------------------------------------------------------------------
 pred_danger = summary["predicted_RUL"] <= red
 true_danger = summary["true_RUL_for_validation_only"] <= red
@@ -292,11 +289,14 @@ feature_importance = [
     for s, v in list(domain["top_sensors_rf"].items())[:5]
 ]
 
+# 센서 추이 차트의 y축 범위·이름표 (값이 운전조건 보정값이므로 범위도 보정값 기준)
+train_view = RegimeCorrector().fit(train_raw, TREND_SENSORS).transform(train_raw)
 trend_meta = {}
-for s, unit in TREND_SENSORS.items():
-    lo, hi = train_raw[s].min(), train_raw[s].max()
+for s in TREND_SENSORS:
+    lo, hi = train_view[s].min(), train_view[s].max()
     pad = (hi - lo) * TREND_DOMAIN_PAD
-    trend_meta[s] = {"unit": unit, "domain": [round(lo - pad, 1), round(hi + pad, 1)]}
+    trend_meta[s] = {"unit": SENSOR_UNIT[s], "label": f"{short_label(s)} ({s})",
+                     "domain": [round(lo - pad, 1), round(hi + pad, 1)]}
 
 # ---------------------------------------------------------------------------
 # 7. 비용 시뮬레이션 (Simulation.tsx의 computeScenario()와 똑같은 식)
@@ -353,13 +353,15 @@ savings_summary = {
     "perThousandEnginesEok": scenario["savingPer1000"],
     "savingRatePct": scenario["savingRate"],
     "dangerCaseReductionPct": scenario["dangerCaseReduction"],
-    "note": "테스트 엔진 100대 결과를 1,000대 규모로 환산한 값입니다. 정비 비용·가동중단 단가는 가정값이고, "
+    "note": f"테스트 엔진 {n_engines}대 결과를 1,000대 규모로 환산한 값입니다. 정비 비용·가동중단 단가는 가정값이고, "
             "탐지/누락/오탐 건수는 실제 모델 성능입니다.",
 }
 
 data_meta = {
     "generatedAt": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-    "dataset": "C-MAPSS FD001",
+    "dataset": f"C-MAPSS {DATASET}",
+    "datasetDescription": DATASET_DESC[DATASET],
+    "sensorValues": "운전조건 보정값" if MULTI_REGIME else "원본값",
     "testEngines": n_engines,
     "selectedEngines": [int(r["id"].split("-")[1]) for r in ranking],
     "featuredEngine": featured,
@@ -375,7 +377,7 @@ J = lambda obj: json.dumps(obj, ensure_ascii=False, indent=2)
 
 ts_code = f"""// ⚠️ 자동 생성 파일 — 분석 레포의 scripts/08_export_dashboard_ts.py 가 만든다.
 // 직접 고치지 말고 파이썬 파이프라인을 다시 돌려서 새로 받아올 것.
-// 원본 데이터: C-MAPSS FD001 (NASA 터보팬 엔진 열화 시뮬레이션), 모델: LSTM Seq2Seq
+// 원본 데이터: C-MAPSS {DATASET} ({DATASET_DESC[DATASET]}, NASA 터보팬 엔진 열화 시뮬레이션), 모델: LSTM Seq2Seq
 // (분석 레포 docs/DESIGN_DECISIONS.md, 이 레포 docs/DATA_MAPPING.md 참고)
 // 시간축은 엔진 운행 '사이클(cycle)' 입니다.
 
@@ -495,7 +497,8 @@ export const engineDetails: Record<string, EngineDetail> = {J(details)}
 
 export const DEFAULT_ENGINE_ID = 'engine-{featured}'
 
-export const trendMeta: Record<string, {{ unit: string; domain: [number, number] }}> = {J(trend_meta)}
+/** 센서 추이 3종 (06번 RF 중요도 상위 센서) — 값은 {"운전조건 보정값" if MULTI_REGIME else "원본값"} */
+export const trendMeta: Record<string, {{ unit: string; label: string; domain: [number, number] }}> = {J(trend_meta)}
 
 /** 위험 등급(RUL≤{red}) 조기경보 성능 — LSTM 모델, 공식 test {n_engines}개 엔진 기준 실제 계산값
  *  (TP={tp}, FN={fn}, FP={fp}) */

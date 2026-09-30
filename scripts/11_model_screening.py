@@ -17,11 +17,11 @@
 후보
   회귀(RUL 숫자 예측): Ridge(선형), RandomForest, ExtraTrees, HistGradientBoosting(부스팅), MLP(얕은 신경망),
                        LSTM, GRU, 1D-CNN
-  분류(위험 ≤ 30): LogisticRegression, RandomForest, HistGradientBoosting, IsolationForest(비지도)
+  분류(위험 = 잔여 ≤ 위험 기준, common.py DANGER_RUL): LogisticRegression, RandomForest, HistGradientBoosting, IsolationForest(비지도)
                   — 과제 문서 권장 목록(RandomForest, LogisticRegression, IsolationForest, One-Class SVM) 중심
 
 실행: python scripts/11_model_screening.py  (CMAPSS_DATASET으로 FD001/FD004 선택, FD004는 약 30분)
-결과: outputs/metrics/model_screening_*.csv, outputs/figures/model_screening.png
+결과: outputs/<데이터셋>/metrics/model_screening_*.csv, outputs/<데이터셋>/figures/model_screening.png
 """
 
 import json
@@ -140,7 +140,7 @@ reg_res = pd.DataFrame(reg_rows).sort_values("test_RMSE")
 reg_res.to_csv(f"{OUT_METRICS}/model_screening_regression.csv", index=False, encoding="utf-8-sig")
 
 # ---------------------------------------------------------------------------
-# 3. 분류 후보 (위험 = 잔여 ≤ 30, 임곗값은 모두 기본값 0.5 — 공정 비교를 위해 조정하지 않음)
+# 3. 분류 후보 (위험 = 잔여 ≤ DANGER_RUL, 임곗값은 모두 기본값 0.5 — 공정 비교를 위해 조정하지 않음)
 # ---------------------------------------------------------------------------
 ytr_c, yva_c = (ytr <= DANGER_RUL).astype(int), (yva <= DANGER_RUL).astype(int)
 yte_c = (y_test <= DANGER_RUL).astype(int)
@@ -175,12 +175,12 @@ th = cands[int(np.argmax([f1_score(ytr_c, (s_tr >= c).astype(int)) for c in cand
 cls_rows.append(cls_row("IsolationForest (비지도)", (s_va >= th).astype(int), (s_te >= th).astype(int), time.time() - t0))
 print(f"  IsolationForest: val F1 {cls_rows[-1]['val_F1']}, test F1 {cls_rows[-1]['test_F1']}")
 
-# 참고: 회귀 모델의 예측 RUL을 30으로 잘라 분류로 쓴 결과 (09번 "회귀→분류"와 같은 방식)
+# 참고: 회귀 모델의 예측 RUL을 위험 기준(DANGER_RUL)으로 잘라 분류로 쓴 결과 (09번 "회귀→분류"와 같은 방식)
 for name in ("LSTM (04번)",):
     pv = (pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")["RUL_pred"] <= DANGER_RUL).astype(int)
     lt = pd.read_csv(f"{OUT_METRICS}/lstm_test_predictions.csv").set_index("unit").loc[y_test.index]
     vt = pd.read_csv(f"{OUT_METRICS}/lstm_val_predictions.csv")
-    cls_rows.append({"model": "LSTM 회귀 → RUL≤30 (참고)",
+    cls_rows.append({"model": f"LSTM 회귀 → RUL≤{DANGER_RUL} (참고)",
                      "val_F1": round(f1_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
                      "val_Precision": round(precision_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
                      "val_Recall": round(recall_score((vt["RUL_true"] <= DANGER_RUL).astype(int), pv), 3),
@@ -190,10 +190,10 @@ cls_res = pd.DataFrame(cls_rows).sort_values("val_F1", ascending=False)
 cls_res.to_csv(f"{OUT_METRICS}/model_screening_classification.csv", index=False, encoding="utf-8-sig")
 
 # ---------------------------------------------------------------------------
-# 4. 회귀 모델을 "경보"로 썼을 때의 오탐율·미탐율 (예측 RUL ≤ 30 이면 위험 경보)
+# 4. 회귀 모델을 "경보"로 썼을 때의 오탐율·미탐율 (예측 RUL ≤ DANGER_RUL 이면 위험 경보)
 # ---------------------------------------------------------------------------
 # 같은 MAE라도 "위험을 놓치는 쪽으로 틀리는지, 괜히 경보하는 쪽으로 틀리는지"는 다를 수 있어서,
-# 회귀 예측을 대시보드 신호등(빨간불 = 예측 RUL ≤ 30)처럼 썼을 때 얼마나 틀리는지 계산합니다.
+# 회귀 예측을 대시보드 신호등(빨간불 = 예측 RUL ≤ DANGER_RUL)처럼 썼을 때 얼마나 틀리는지 계산합니다.
 #   미탐율 = 실제 위험인데 경보를 못 한 비율      = FN / (TP + FN)   (= 1 − Recall, 낮을수록 좋음)
 #   오탐율 = 실제 정상인데 경보를 울린 비율       = FP / (FP + TN)   (낮을수록 좋음)
 #   헛경보 비율 = 울린 경보 중 틀린 경보의 비율   = FP / (TP + FP)   (= 1 − Precision)

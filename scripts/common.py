@@ -31,11 +31,12 @@ import matplotlib.font_manager as fm  # noqa: E402  (backend 설정 뒤에 불�
 # ---------------------------------------------------------------------------
 # 0-1. 어떤 데이터셋을 쓸지 (FD001 / FD002 / FD003 / FD004)
 # ---------------------------------------------------------------------------
-# 기본은 FD001입니다. 다른 서브셋을 돌리려면 실행할 때 환경변수로 이름만 바꿔 주면 됩니다.
-#   PowerShell:  $env:CMAPSS_DATASET="FD004"; python scripts/03_train_rf.py
-#   Git Bash:    CMAPSS_DATASET=FD004 python scripts/03_train_rf.py
-# 코드 안의 파일 이름(train_FD004.txt 등)과 결과 폴더가 이 값에 맞춰 자동으로 바뀝니다.
-DATASET = os.environ.get("CMAPSS_DATASET", "FD001").upper()
+# 프로젝트의 중심 데이터셋은 FD004(비행 조건 6가지 · 고장 원인 2가지 — 가장 현실에 가까운 서브셋)이고,
+# FD001(조건 1가지 · 원인 1가지)은 비교용입니다. 다른 서브셋을 돌리려면 환경변수로 이름만 바꿉니다.
+#   PowerShell:  $env:CMAPSS_DATASET="FD001"; python scripts/03_train_rf.py
+#   Git Bash:    CMAPSS_DATASET=FD001 python scripts/03_train_rf.py
+# 코드 안의 파일 이름(train_FD001.txt 등)과 결과 폴더가 이 값에 맞춰 자동으로 바뀝니다.
+DATASET = os.environ.get("CMAPSS_DATASET", "FD004").upper()
 if DATASET not in ("FD001", "FD002", "FD003", "FD004"):
     raise SystemExit(f"CMAPSS_DATASET은 FD001~FD004 중 하나여야 합니다 (지금: {DATASET})")
 # FD002·FD004는 비행 조건(고도·속도·스로틀)이 6가지로 바뀌며 섞여 있는 "다중 운전조건" 데이터
@@ -49,14 +50,21 @@ MULTI_REGIME = DATASET in ("FD002", "FD004")
 # 기준으로 프로젝트 폴더를 계산합니다:
 #   common.py 위치 = <프로젝트>/scripts/common.py  →  한 단계 위 = <프로젝트>
 # 이렇게 하면 레포를 어디에 clone하든, 어느 폴더에서 실행하든 똑같이 동작합니다.
-# 결과 폴더: FD001은 예전처럼 outputs/ 바로 아래, 다른 서브셋은 outputs/FD004/ 처럼
-# 따로 저장해서 서로 덮어쓰지 않고 나란히 비교할 수 있게 했습니다.
+# 결과 폴더: outputs/FD004/, outputs/FD001/ 처럼 데이터셋별로 따로 저장해서 서로 덮어쓰지 않고
+# 나란히 비교할 수 있게 했습니다.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA = str(PROJECT_ROOT / "data")
 TRAIN_FILE = f"{DATA}/train_{DATASET}.txt"
 TEST_FILE = f"{DATA}/test_{DATASET}.txt"
 RUL_FILE = f"{DATA}/RUL_{DATASET}.txt"
-_OUT_ROOT = PROJECT_ROOT / "outputs" if DATASET == "FD001" else PROJECT_ROOT / "outputs" / DATASET
+
+
+def out_root(dataset: str) -> Path:
+    """데이터셋별 결과 폴더 (10번 교차 검증처럼 두 데이터셋을 함께 쓰는 스크립트도 사용)."""
+    return PROJECT_ROOT / "outputs" / dataset
+
+
+_OUT_ROOT = out_root(DATASET)
 OUT_FIG = str(_OUT_ROOT / "figures")
 OUT_METRICS = str(_OUT_ROOT / "metrics")
 OUT_MODELS = str(_OUT_ROOT / "models")
@@ -66,7 +74,7 @@ if not Path(TRAIN_FILE).exists():
     raise SystemExit(f"{TRAIN_FILE} 파일이 없습니다. NASA PCoE 데이터 저장소에서 CMAPSSData.zip을 받아 "
                      f"train/test/RUL_{DATASET}.txt 세 파일을 data/ 폴더에 넣어 주세요 (README 참고).")
 
-# 결과를 저장할 폴더가 없으면 미리 만들어 둡니다. 특히 outputs/models는 학습된 모델
+# 결과를 저장할 폴더가 없으면 미리 만들어 둡니다. 특히 models 폴더는 학습된 모델
 # 파일(용량이 큼)이라 레포에 올라가 있지 않아서, 처음 clone한 사람은 이 폴더가 없습니다.
 for _d in (OUT_FIG, OUT_METRICS, OUT_MODELS, OUT_DASH):
     Path(_d).mkdir(parents=True, exist_ok=True)
@@ -435,32 +443,32 @@ def split_engines(df: pd.DataFrame, val_ratio: float = VAL_SPLIT_RATIO, seed: in
 
 
 # ---------------------------------------------------------------------------
-# 7. [임의 설정값 #11] 위험(고장 임박) 기준: 잔여 ≤ 30사이클
+# 7. [임의 설정값 #11] 위험(고장 임박) 기준: 잔여 ≤ 40사이클
 # ---------------------------------------------------------------------------
-# 과제 필수 과제(09_classification.py)의 "위험" 라벨과 대시보드의 빨간불(RED)이 같은
-# 기준을 쓰도록 여기 한 곳에 둡니다. 문제정의서 3번 항목과 과제 문서(주제 F)의 예시값.
-# 근거: 가장 짧은 엔진 수명이 128사이클이라 30이면 모든 엔진이 "정상 구간"을 충분히
-# (최소 98사이클) 가진 뒤 위험 구간에 들어갑니다. 너무 작으면(예: 10) 경보를 받고
-# 정비를 준비할 시간이 없고, 너무 크면(예: 80) 센서에 아직 열화 신호가 거의 없는 구간까지
-# "위험"이 되어 모델이 구분할 근거가 없어집니다 (09번에서 20/30/50으로 바꿔가며 확인).
-# 보전 관점 근거(13_threshold_cost.py): 리드타임을 지키면서 운행 1사이클당 정비 비용이 가장 싼
-# 기준은 "리드타임 + 약 10사이클(FD001 LSTM 기준)"이었고, 30은 리드타임 약 20사이클일 때의 최적값입니다.
-# 실제 정비 리드타임을 알게 되면 그 값 + 10을 기준으로 다시 정하는 것을 권장합니다.
-DANGER_RUL = 30
+# 과제 필수 과제(09_classification.py)의 "위험" 라벨과 대시보드의 빨간불(RED) · 정비 경보가 같은
+# 기준을 쓰도록 여기 한 곳에 둡니다.
+# 근거 (13_threshold_cost.py, docs/DESIGN_DECISIONS.md #11):
+#   C-MAPSS 터보팬 엔진 정비 일정 연구의 운영 조건 — 추가 정비 준비 최소 7일, 정비 슬롯 10~20일
+#   간격, 주간 계획, 하루 1비행, 계획:비계획 정비 비용 1:5 (de Pater, Reijns & Mitici 2022,
+#   Reliability Engineering & System Safety 221, 108341) — 으로 "예측 RUL ≤ N이면 경보 → 정비"를
+#   시뮬레이션하면, FD004 LSTM에서 운행 1사이클당 정비 비용이 가장 싼 N은 40이었습니다
+#   (비용 비율을 1:2로 바꿔도 40 — Lee & Mitici 2023, RESS 230, 108908).
+#   N = 30이면 경보 뒤 정비까지 걸리는 시간(평균 17사이클) 안에 엔진 12.6%가 고장 나고,
+#   N을 40보다 크게 잡으면 비용이 완만하게만 늘어 (45: +1%, 50: +3%) 불확실할 땐 크게 잡는 편이 안전합니다.
+#   과제 문서 주제 F의 예시값(30)과 문제정의서의 "예: 30"에서 출발했지만, 위 근거로 40으로 확정했습니다.
+DANGER_RUL = 40
 
 # ---------------------------------------------------------------------------
 # [임의 설정값 #7] 대시보드 위험도 등급 구간 (07·08 대시보드 export가 같이 씀)
 # ---------------------------------------------------------------------------
 # 예측된 RUL(잔존수명, 단위: cycle)을 대시보드에서 신호등처럼 바로 보여주기 위해
 # 3단계 등급으로 나눕니다.
-#   위험(RED): 예측 RUL ≤ 30 사이클   → 정비 일정을 지금 당장 잡아야 하는 수준 (= 위 DANGER_RUL)
-#   주의(YELLOW): 30 초과 ~ 60 미만   → 정비 계획을 슬슬 준비해야 하는 수준
-#   정상(GREEN): 60 사이클 이상       → 당장은 여유 있는 수준
-# 처음에는 RED를 20 미만으로 뒀지만(2026-09-28), 과제 분류 기준(30)과 대시보드 신호등이
-# 달라 발표에서 혼란을 줄 수 있어 2026-09-29에 30으로 통일했습니다. 주의 구간(60)은
-# 실제 정비 리드타임 데이터가 없어 "위험 기준의 두 배 = 정비 준비를 시작할 여유"로
-# 상식적으로 가정한 값이라, 현업 정보를 얻으면 교체를 추천합니다.
-RISK_THRESHOLDS = {"red_at_or_below": DANGER_RUL, "yellow_below": 60}
+#   위험(RED): 예측 RUL ≤ 40 사이클   → 정비 경보, 정비 일정을 지금 잡아야 하는 수준 (= 위 DANGER_RUL)
+#   주의(YELLOW): 40 초과 ~ 80 미만   → 정비 계획을 준비해야 하는 수준
+#   정상(GREEN): 80 사이클 이상       → 당장은 여유 있는 수준
+# 주의 구간 상한(80)은 "위험 기준의 두 배 = 정비 준비를 시작할 여유"로 둔 값입니다
+# (위험 기준을 20 → 30 → 40으로 바꿀 때마다 같은 규칙을 적용). 현업 정보를 얻으면 교체를 추천합니다.
+RISK_THRESHOLDS = {"red_at_or_below": DANGER_RUL, "yellow_below": 2 * DANGER_RUL}
 
 
 def risk_level(rul_pred: float) -> str:

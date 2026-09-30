@@ -6,8 +6,9 @@
 LSTM과 GRU를 시드 3개(42, 1, 2)로 각각 학습해 공식 test 성능의 평균과 흔들림을 비교합니다.
 (구조·학습 설정·데이터 분할은 04·11번과 동일, 바뀌는 것은 시드뿐)
 
-실행: python scripts/12_seed_check.py   (FD001 기준 약 20분, CMAPSS_DATASET으로 변경 가능)
-결과: outputs/metrics/seed_check.csv
+실행: python scripts/12_seed_check.py   (CMAPSS_DATASET으로 선택. 저장된 결과는 FD001 — 약 25분,
+      FD004는 데이터가 약 3배라 약 1시간 이상 걸림)
+결과: outputs/<데이터셋>/metrics/seed_check.csv
 """
 
 import time

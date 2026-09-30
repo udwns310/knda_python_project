@@ -4,7 +4,7 @@
     "last_observed_cycle": 230,
     "predicted_RUL": 36.2,
     "true_RUL_for_validation_only": 22.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 2,
@@ -88,7 +88,7 @@
     "last_observed_cycle": 227,
     "predicted_RUL": 68.8,
     "true_RUL_for_validation_only": 71.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 14,
@@ -186,7 +186,7 @@
     "last_observed_cycle": 144,
     "predicted_RUL": 79.7,
     "true_RUL_for_validation_only": 76.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 28,
@@ -200,7 +200,7 @@
     "last_observed_cycle": 216,
     "predicted_RUL": 66.2,
     "true_RUL_for_validation_only": 64.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 30,
@@ -242,21 +242,21 @@
     "last_observed_cycle": 278,
     "predicted_RUL": 31.8,
     "true_RUL_for_validation_only": 36.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 36,
     "last_observed_cycle": 159,
     "predicted_RUL": 79.6,
     "true_RUL_for_validation_only": 73.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 37,
     "last_observed_cycle": 345,
     "predicted_RUL": 62.3,
     "true_RUL_for_validation_only": 89.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 38,
@@ -298,14 +298,14 @@
     "last_observed_cycle": 120,
     "predicted_RUL": 71.2,
     "true_RUL_for_validation_only": 42.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 44,
     "last_observed_cycle": 406,
     "predicted_RUL": 35.1,
     "true_RUL_for_validation_only": 60.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 45,
@@ -326,7 +326,7 @@
     "last_observed_cycle": 224,
     "predicted_RUL": 37.1,
     "true_RUL_for_validation_only": 34.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 48,
@@ -347,7 +347,7 @@
     "last_observed_cycle": 206,
     "predicted_RUL": 73.4,
     "true_RUL_for_validation_only": 86.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 51,
@@ -389,7 +389,7 @@
     "last_observed_cycle": 180,
     "predicted_RUL": 67.2,
     "true_RUL_for_validation_only": 67.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 57,
@@ -424,7 +424,7 @@
     "last_observed_cycle": 396,
     "predicted_RUL": 31.3,
     "true_RUL_for_validation_only": 51.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 62,
@@ -473,7 +473,7 @@
     "last_observed_cycle": 241,
     "predicted_RUL": 38.1,
     "true_RUL_for_validation_only": 46.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 69,
@@ -487,7 +487,7 @@
     "last_observed_cycle": 190,
     "predicted_RUL": 39.9,
     "true_RUL_for_validation_only": 33.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 71,
@@ -508,7 +508,7 @@
     "last_observed_cycle": 149,
     "predicted_RUL": 34.9,
     "true_RUL_for_validation_only": 23.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 74,
@@ -613,14 +613,14 @@
     "last_observed_cycle": 140,
     "predicted_RUL": 68.5,
     "true_RUL_for_validation_only": 56.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 89,
     "last_observed_cycle": 285,
     "predicted_RUL": 71.0,
     "true_RUL_for_validation_only": 86.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 90,
@@ -732,7 +732,7 @@
     "last_observed_cycle": 351,
     "predicted_RUL": 65.5,
     "true_RUL_for_validation_only": 100.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 106,
@@ -746,7 +746,7 @@
     "last_observed_cycle": 121,
     "predicted_RUL": 62.7,
     "true_RUL_for_validation_only": 41.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 108,
@@ -844,7 +844,7 @@
     "last_observed_cycle": 194,
     "predicted_RUL": 34.9,
     "true_RUL_for_validation_only": 41.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 122,
@@ -858,14 +858,14 @@
     "last_observed_cycle": 236,
     "predicted_RUL": 33.5,
     "true_RUL_for_validation_only": 23.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 124,
     "last_observed_cycle": 230,
     "predicted_RUL": 60.8,
     "true_RUL_for_validation_only": 86.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 125,
@@ -1026,7 +1026,7 @@
     "last_observed_cycle": 116,
     "predicted_RUL": 68.2,
     "true_RUL_for_validation_only": 56.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 148,
@@ -1040,7 +1040,7 @@
     "last_observed_cycle": 320,
     "predicted_RUL": 62.8,
     "true_RUL_for_validation_only": 76.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 150,
@@ -1124,7 +1124,7 @@
     "last_observed_cycle": 257,
     "predicted_RUL": 72.8,
     "true_RUL_for_validation_only": 82.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 162,
@@ -1292,7 +1292,7 @@
     "last_observed_cycle": 203,
     "predicted_RUL": 37.6,
     "true_RUL_for_validation_only": 46.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 186,
@@ -1306,7 +1306,7 @@
     "last_observed_cycle": 121,
     "predicted_RUL": 35.2,
     "true_RUL_for_validation_only": 24.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 188,
@@ -1341,7 +1341,7 @@
     "last_observed_cycle": 203,
     "predicted_RUL": 78.5,
     "true_RUL_for_validation_only": 71.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 193,
@@ -1481,7 +1481,7 @@
     "last_observed_cycle": 261,
     "predicted_RUL": 72.2,
     "true_RUL_for_validation_only": 76.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 213,
@@ -1516,7 +1516,7 @@
     "last_observed_cycle": 141,
     "predicted_RUL": 79.4,
     "true_RUL_for_validation_only": 66.0,
-    "risk_level": "GREEN"
+    "risk_level": "YELLOW"
   },
   {
     "unit": 218,
@@ -1614,7 +1614,7 @@
     "last_observed_cycle": 230,
     "predicted_RUL": 40.0,
     "true_RUL_for_validation_only": 33.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 232,
@@ -1677,7 +1677,7 @@
     "last_observed_cycle": 204,
     "predicted_RUL": 36.0,
     "true_RUL_for_validation_only": 98.0,
-    "risk_level": "YELLOW"
+    "risk_level": "RED"
   },
   {
     "unit": 241,

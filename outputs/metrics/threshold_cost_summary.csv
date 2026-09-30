@@ -1,5 +1,0 @@
-﻿model,cost_ratio,best_N,best_cost,best_failure_rate,best_wasted_cycles,within_5pct_N,N30_failure_rate,N30_extra_cost_pct
-LSTM (04번),1:2 (Lee & Mitici 2023),30,5.81,0.026,16.5,25~45,0.026,0.0
-LSTM (04번),1:5 (de Pater 2022),35,5.88,0.003,20.3,35~45,0.026,6.4
-RandomForest (03번),1:2 (Lee & Mitici 2023),40,6.08,0.052,20.6,35~55,0.202,7.8
-RandomForest (03번),1:5 (de Pater 2022),60,6.44,0.003,35.7,50~70,0.202,53.0

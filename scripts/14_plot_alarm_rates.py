@@ -2,7 +2,7 @@
 14_plot_alarm_rates.py
 ======================
 11번 모델 비교 결과(model_screening_alarm_rates.csv)를 그림 한 장으로 보여줍니다.
-"회귀 모델의 예측 RUL이 30 이하이면 위험 경보"로 썼을 때, 모델마다
+"회귀 모델의 예측 RUL이 위험 기준(40) 이하이면 위험 경보"로 썼을 때, 모델마다
   ① 평균 오차(MAE) — 남은 수명을 평균 몇 사이클 틀리는지
   ② 미탐율 — 실제 위험 구간인데 경보를 못 한 비율 (놓치면 고장 → 가장 중요)
   ③ 오탐율 — 실제 정상 구간인데 경보를 울린 비율 (불필요한 점검)
@@ -10,7 +10,7 @@
 모델 순서는 세 칸 모두 같습니다 (미탐율이 낮은 순).
 
 실행: python scripts/14_plot_alarm_rates.py   (11번 실행 후, CMAPSS_DATASET으로 FD004/FD001 선택)
-결과: outputs/figures/model_alarm_rates.png
+결과: outputs/<데이터셋>/figures/model_alarm_rates.png
 """
 
 import pandas as pd

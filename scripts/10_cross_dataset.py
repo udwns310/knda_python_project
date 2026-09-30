@@ -19,7 +19,7 @@ RandomForest 분류(09번과 같은 설정으로 학습 데이터에서 다시 �
   (B) 운전조건 보정    : 새 데이터셋 train의 센서값(정답 RUL은 사용하지 않음)으로 운전조건별
       평균·표준편차를 다시 잡아 정규화 — "새 설비에 센서 데이터만 먼저 모아 기준을 맞춘 뒤 적용"하는 상황
 
-필요: FD001·FD004 둘 다 03·04번을 먼저 실행해 outputs/models, outputs/FD004/models가 있어야 합니다.
+필요: FD004·FD001 둘 다 03·04·09번을 먼저 실행해 outputs/FD004/, outputs/FD001/에 모델과 결과가 있어야 합니다.
 실행: python scripts/10_cross_dataset.py   (CMAPSS_DATASET 설정과 무관하게 두 데이터셋을 모두 사용)
 결과: outputs/cross_dataset/ (표 csv/json + 그림)
 """
@@ -36,19 +36,19 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 
 from common import (
     PROJECT_ROOT, DATA, load_raw, add_rul_labels, split_engines,
-    Normalizer, build_rf_features, DANGER_RUL, mae, rmse, nasa_score,
+    Normalizer, build_rf_features, DANGER_RUL, mae, rmse, nasa_score, out_root,
 )
 from seq_models import engine_sequences, predict_recurrent, load_lstm
 
-DATASETS = ["FD001", "FD004"]
+DATASETS = ["FD004", "FD001"]
 OUT_DIR = PROJECT_ROOT / "outputs" / "cross_dataset"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 RF_CLS_PARAMS = dict(n_estimators=300, min_samples_leaf=5, random_state=42, n_jobs=-1)  # 09번과 동일
-PROB_THRESHOLD = 0.40  # 09번에서 FD001·FD004 모두 0.40이 선택됨
-
-
-def out_root(ds):
-    return PROJECT_ROOT / "outputs" if ds == "FD001" else PROJECT_ROOT / "outputs" / ds
+# 분류기 경보 확률 임곗값: 학습한 데이터셋에서 09번이 고른 값을 그대로 씀
+PROB_THRESHOLD = {}
+for _ds in DATASETS:
+    with open(out_root(_ds) / "metrics" / "classification_metrics.json", encoding="utf-8") as _f:
+        PROB_THRESHOLD[_ds] = json.load(_f)["threshold_adjustment"]["chosen"]
 
 
 def load_dataset(ds):
@@ -132,7 +132,7 @@ for src in DATASETS:
                              **cls_scores(danger_true[u], (reg[u] <= DANGER_RUL).astype(int))})
             rows.append({"학습": src, "평가": tgt, "정규화": label, "모델": "RandomForest 분류",
                          "MAE": None, "RMSE": None, "NASA": None,
-                         **cls_scores(danger_true[u], (prob[u] >= PROB_THRESHOLD).astype(int))})
+                         **cls_scores(danger_true[u], (prob[u] >= PROB_THRESHOLD[src]).astype(int))})
             print(f"  {src} → {tgt} [{label}] LSTM MAE {rows[-3]['MAE']}, RF MAE {rows[-2]['MAE']}, "
                   f"분류 F1 {rows[-1]['F1']}")
 

@@ -1,10 +1,10 @@
 {
-  "task": "고장 임박 이진 분류 (위험 = 잔여 ≤ 30사이클)",
+  "task": "고장 임박 이진 분류 (위험 = 잔여 ≤ 40사이클)",
   "baseline": {
     "method": "이동 Z-score 건강지표",
     "normal_cycles": 30,
     "smooth_window": 15,
-    "tau": 1.4368
+    "tau": 1.1827
   },
   "model": {
     "method": "RandomForestClassifier",
@@ -14,95 +14,95 @@
   },
   "threshold_adjustment": {
     "default": 0.5,
-    "chosen": 0.4,
+    "chosen": 0.36,
     "rule": "train 엔진 5-겹 교차검증에서 Recall ≥ 0.9 중 Precision 최대",
     "reason": "미탐 1건 비용이 오탐 1건의 약 48배(08번 비용 가정)라 재현율 우선"
   },
   "comparison": [
     {
       "model": "기준모델(이동 Z-score)",
-      "val_TP": 888,
-      "val_FN": 631,
-      "val_FP": 817,
-      "val_TN": 9995,
-      "val_precision": 0.521,
-      "val_recall": 0.585,
-      "val_F1": 0.551,
-      "test_TP": 22,
+      "val_TP": 1206,
+      "val_FN": 803,
+      "val_FP": 925,
+      "val_TN": 9397,
+      "val_precision": 0.566,
+      "val_recall": 0.6,
+      "val_F1": 0.583,
+      "test_TP": 38,
       "test_FN": 31,
-      "test_FP": 23,
-      "test_TN": 172,
-      "test_precision": 0.489,
-      "test_recall": 0.415,
-      "test_F1": 0.449
+      "test_FP": 22,
+      "test_TN": 157,
+      "test_precision": 0.633,
+      "test_recall": 0.551,
+      "test_F1": 0.589
     },
     {
       "model": "RandomForest 분류(임곗값 0.5)",
-      "val_TP": 1254,
-      "val_FN": 265,
-      "val_FP": 160,
-      "val_TN": 10652,
-      "val_precision": 0.887,
-      "val_recall": 0.826,
-      "val_F1": 0.855,
-      "test_TP": 45,
-      "test_FN": 8,
-      "test_FP": 5,
-      "test_TN": 190,
-      "test_precision": 0.9,
-      "test_recall": 0.849,
-      "test_F1": 0.874
+      "val_TP": 1668,
+      "val_FN": 341,
+      "val_FP": 229,
+      "val_TN": 10093,
+      "val_precision": 0.879,
+      "val_recall": 0.83,
+      "val_F1": 0.854,
+      "test_TP": 62,
+      "test_FN": 7,
+      "test_FP": 6,
+      "test_TN": 173,
+      "test_precision": 0.912,
+      "test_recall": 0.899,
+      "test_F1": 0.905
     },
     {
-      "model": "RandomForest 분류(임곗값 0.40)",
-      "val_TP": 1318,
-      "val_FN": 201,
-      "val_FP": 214,
-      "val_TN": 10598,
-      "val_precision": 0.86,
-      "val_recall": 0.868,
-      "val_F1": 0.864,
-      "test_TP": 48,
-      "test_FN": 5,
+      "model": "RandomForest 분류(임곗값 0.36)",
+      "val_TP": 1782,
+      "val_FN": 227,
+      "val_FP": 337,
+      "val_TN": 9985,
+      "val_precision": 0.841,
+      "val_recall": 0.887,
+      "val_F1": 0.863,
+      "test_TP": 65,
+      "test_FN": 4,
       "test_FP": 8,
-      "test_TN": 187,
-      "test_precision": 0.857,
-      "test_recall": 0.906,
-      "test_F1": 0.881
+      "test_TN": 171,
+      "test_precision": 0.89,
+      "test_recall": 0.942,
+      "test_F1": 0.915
     },
     {
-      "model": "RF 회귀→분류(예측 RUL≤30)",
-      "val_TP": 1173,
-      "val_FN": 346,
-      "val_FP": 124,
-      "val_TN": 10688,
-      "val_precision": 0.904,
-      "val_recall": 0.772,
-      "val_F1": 0.833,
-      "test_TP": 44,
+      "model": "RF 회귀→분류(예측 RUL≤40)",
+      "val_TP": 1565,
+      "val_FN": 444,
+      "val_FP": 151,
+      "val_TN": 10171,
+      "val_precision": 0.912,
+      "val_recall": 0.779,
+      "val_F1": 0.84,
+      "test_TP": 58,
+      "test_FN": 11,
+      "test_FP": 7,
+      "test_TN": 172,
+      "test_precision": 0.892,
+      "test_recall": 0.841,
+      "test_F1": 0.866
+    },
+    {
+      "model": "LSTM 회귀→분류(예측 RUL≤40)",
+      "val_TP": 1748,
+      "val_FN": 261,
+      "val_FP": 161,
+      "val_TN": 10161,
+      "val_precision": 0.916,
+      "val_recall": 0.87,
+      "val_F1": 0.892,
+      "test_TP": 60,
       "test_FN": 9,
-      "test_FP": 3,
-      "test_TN": 192,
-      "test_precision": 0.936,
-      "test_recall": 0.83,
-      "test_F1": 0.88
-    },
-    {
-      "model": "LSTM 회귀→분류(예측 RUL≤30)",
-      "val_TP": 1267,
-      "val_FN": 252,
-      "val_FP": 106,
-      "val_TN": 10706,
-      "val_precision": 0.923,
-      "val_recall": 0.834,
-      "val_F1": 0.876,
-      "test_TP": 48,
-      "test_FN": 5,
-      "test_FP": 4,
-      "test_TN": 191,
-      "test_precision": 0.923,
-      "test_recall": 0.906,
-      "test_F1": 0.914
+      "test_FP": 6,
+      "test_TN": 173,
+      "test_precision": 0.909,
+      "test_recall": 0.87,
+      "test_F1": 0.889
     }
   ],
   "danger_threshold_sensitivity": [
@@ -117,308 +117,318 @@
       "LSTM회귀→분류_F1": 0.876
     },
     {
+      "danger_RUL": 40,
+      "RF분류_F1(0.5)": 0.854,
+      "LSTM회귀→분류_F1": 0.892
+    },
+    {
       "danger_RUL": 50,
       "RF분류_F1(0.5)": 0.854,
       "LSTM회귀→분류_F1": 0.901
+    },
+    {
+      "danger_RUL": 60,
+      "RF분류_F1(0.5)": 0.833,
+      "LSTM회귀→분류_F1": 0.894
     }
   ],
   "lead_time": {
     "rule": "3사이클 연속 경보",
-    "median": 26.0,
+    "median": 35.0,
     "per_engine": [
       {
         "unit": 4,
+        "life": 274,
+        "first_alarm_cycle": 213,
+        "lead_time": 61
+      },
+      {
+        "unit": 8,
+        "life": 230,
+        "first_alarm_cycle": 195,
+        "lead_time": 35
+      },
+      {
+        "unit": 25,
+        "life": 150,
+        "first_alarm_cycle": 125,
+        "lead_time": 25
+      },
+      {
+        "unit": 39,
+        "life": 202,
+        "first_alarm_cycle": 175,
+        "lead_time": 27
+      },
+      {
+        "unit": 47,
+        "life": 375,
+        "first_alarm_cycle": 340,
+        "lead_time": 35
+      },
+      {
+        "unit": 51,
+        "life": 285,
+        "first_alarm_cycle": 248,
+        "lead_time": 37
+      },
+      {
+        "unit": 52,
+        "life": 357,
+        "first_alarm_cycle": 308,
+        "lead_time": 49
+      },
+      {
+        "unit": 55,
+        "life": 344,
+        "first_alarm_cycle": 290,
+        "lead_time": 54
+      },
+      {
+        "unit": 71,
+        "life": 312,
+        "first_alarm_cycle": 130,
+        "lead_time": 182
+      },
+      {
+        "unit": 76,
+        "life": 152,
+        "first_alarm_cycle": 124,
+        "lead_time": 28
+      },
+      {
+        "unit": 81,
+        "life": 187,
+        "first_alarm_cycle": 152,
+        "lead_time": 35
+      },
+      {
+        "unit": 89,
+        "life": 168,
+        "first_alarm_cycle": 142,
+        "lead_time": 26
+      },
+      {
+        "unit": 90,
+        "life": 212,
+        "first_alarm_cycle": 178,
+        "lead_time": 34
+      },
+      {
+        "unit": 95,
+        "life": 239,
+        "first_alarm_cycle": 206,
+        "lead_time": 33
+      },
+      {
+        "unit": 96,
+        "life": 270,
+        "first_alarm_cycle": 236,
+        "lead_time": 34
+      },
+      {
+        "unit": 105,
+        "life": 170,
+        "first_alarm_cycle": 152,
+        "lead_time": 18
+      },
+      {
+        "unit": 121,
+        "life": 194,
+        "first_alarm_cycle": 164,
+        "lead_time": 30
+      },
+      {
+        "unit": 125,
+        "life": 239,
+        "first_alarm_cycle": 206,
+        "lead_time": 33
+      },
+      {
+        "unit": 129,
+        "life": 190,
+        "first_alarm_cycle": 158,
+        "lead_time": 32
+      },
+      {
+        "unit": 132,
+        "life": 254,
+        "first_alarm_cycle": 219,
+        "lead_time": 35
+      },
+      {
+        "unit": 133,
+        "life": 489,
+        "first_alarm_cycle": 434,
+        "lead_time": 55
+      },
+      {
+        "unit": 135,
+        "life": 149,
+        "first_alarm_cycle": 113,
+        "lead_time": 36
+      },
+      {
+        "unit": 139,
+        "life": 251,
+        "first_alarm_cycle": 203,
+        "lead_time": 48
+      },
+      {
+        "unit": 145,
+        "life": 228,
+        "first_alarm_cycle": 185,
+        "lead_time": 43
+      },
+      {
+        "unit": 150,
+        "life": 149,
+        "first_alarm_cycle": 122,
+        "lead_time": 27
+      },
+      {
+        "unit": 153,
+        "life": 168,
+        "first_alarm_cycle": 138,
+        "lead_time": 30
+      },
+      {
+        "unit": 157,
+        "life": 298,
+        "first_alarm_cycle": 263,
+        "lead_time": 35
+      },
+      {
+        "unit": 162,
+        "life": 313,
+        "first_alarm_cycle": 271,
+        "lead_time": 42
+      },
+      {
+        "unit": 163,
+        "life": 285,
+        "first_alarm_cycle": 229,
+        "lead_time": 56
+      },
+      {
+        "unit": 167,
+        "life": 263,
+        "first_alarm_cycle": 218,
+        "lead_time": 45
+      },
+      {
+        "unit": 169,
+        "life": 227,
+        "first_alarm_cycle": 192,
+        "lead_time": 35
+      },
+      {
+        "unit": 171,
+        "life": 399,
+        "first_alarm_cycle": 330,
+        "lead_time": 69
+      },
+      {
+        "unit": 178,
+        "life": 170,
+        "first_alarm_cycle": 142,
+        "lead_time": 28
+      },
+      {
+        "unit": 179,
+        "life": 435,
+        "first_alarm_cycle": 192,
+        "lead_time": 243
+      },
+      {
+        "unit": 186,
+        "life": 163,
+        "first_alarm_cycle": 141,
+        "lead_time": 22
+      },
+      {
+        "unit": 197,
+        "life": 170,
+        "first_alarm_cycle": 130,
+        "lead_time": 40
+      },
+      {
+        "unit": 204,
+        "life": 211,
+        "first_alarm_cycle": 155,
+        "lead_time": 56
+      },
+      {
+        "unit": 205,
+        "life": 242,
+        "first_alarm_cycle": 186,
+        "lead_time": 56
+      },
+      {
+        "unit": 208,
+        "life": 290,
+        "first_alarm_cycle": 239,
+        "lead_time": 51
+      },
+      {
+        "unit": 218,
+        "life": 236,
+        "first_alarm_cycle": 195,
+        "lead_time": 41
+      },
+      {
+        "unit": 220,
+        "life": 202,
+        "first_alarm_cycle": 179,
+        "lead_time": 23
+      },
+      {
+        "unit": 221,
         "life": 274,
         "first_alarm_cycle": 224,
         "lead_time": 50
       },
       {
-        "unit": 8,
-        "life": 230,
-        "first_alarm_cycle": 207,
-        "lead_time": 23
-      },
-      {
-        "unit": 25,
-        "life": 150,
-        "first_alarm_cycle": 130,
-        "lead_time": 20
-      },
-      {
-        "unit": 39,
-        "life": 202,
-        "first_alarm_cycle": 184,
-        "lead_time": 18
-      },
-      {
-        "unit": 47,
-        "life": 375,
-        "first_alarm_cycle": 342,
-        "lead_time": 33
-      },
-      {
-        "unit": 51,
-        "life": 285,
-        "first_alarm_cycle": 254,
-        "lead_time": 31
-      },
-      {
-        "unit": 52,
-        "life": 357,
-        "first_alarm_cycle": 323,
-        "lead_time": 34
-      },
-      {
-        "unit": 55,
-        "life": 344,
-        "first_alarm_cycle": 308,
-        "lead_time": 36
-      },
-      {
-        "unit": 71,
-        "life": 312,
-        "first_alarm_cycle": 139,
-        "lead_time": 173
-      },
-      {
-        "unit": 76,
-        "life": 152,
-        "first_alarm_cycle": 131,
-        "lead_time": 21
-      },
-      {
-        "unit": 81,
-        "life": 187,
-        "first_alarm_cycle": 159,
-        "lead_time": 28
-      },
-      {
-        "unit": 89,
-        "life": 168,
-        "first_alarm_cycle": 149,
-        "lead_time": 19
-      },
-      {
-        "unit": 90,
-        "life": 212,
-        "first_alarm_cycle": 186,
-        "lead_time": 26
-      },
-      {
-        "unit": 95,
-        "life": 239,
-        "first_alarm_cycle": 218,
-        "lead_time": 21
-      },
-      {
-        "unit": 96,
-        "life": 270,
-        "first_alarm_cycle": 247,
-        "lead_time": 23
-      },
-      {
-        "unit": 105,
-        "life": 170,
-        "first_alarm_cycle": 158,
-        "lead_time": 12
-      },
-      {
-        "unit": 121,
-        "life": 194,
-        "first_alarm_cycle": 177,
-        "lead_time": 17
-      },
-      {
-        "unit": 125,
-        "life": 239,
-        "first_alarm_cycle": 207,
-        "lead_time": 32
-      },
-      {
-        "unit": 129,
-        "life": 190,
-        "first_alarm_cycle": 171,
-        "lead_time": 19
-      },
-      {
-        "unit": 132,
-        "life": 254,
-        "first_alarm_cycle": 234,
-        "lead_time": 20
-      },
-      {
-        "unit": 133,
-        "life": 489,
-        "first_alarm_cycle": 448,
-        "lead_time": 41
-      },
-      {
-        "unit": 135,
-        "life": 149,
-        "first_alarm_cycle": 125,
-        "lead_time": 24
-      },
-      {
-        "unit": 139,
-        "life": 251,
-        "first_alarm_cycle": 213,
-        "lead_time": 38
-      },
-      {
-        "unit": 145,
-        "life": 228,
-        "first_alarm_cycle": 200,
-        "lead_time": 28
-      },
-      {
-        "unit": 150,
-        "life": 149,
-        "first_alarm_cycle": 129,
-        "lead_time": 20
-      },
-      {
-        "unit": 153,
-        "life": 168,
-        "first_alarm_cycle": 143,
-        "lead_time": 25
-      },
-      {
-        "unit": 157,
-        "life": 298,
-        "first_alarm_cycle": 274,
-        "lead_time": 24
-      },
-      {
-        "unit": 162,
-        "life": 313,
-        "first_alarm_cycle": 287,
-        "lead_time": 26
-      },
-      {
-        "unit": 163,
-        "life": 285,
-        "first_alarm_cycle": 249,
-        "lead_time": 36
-      },
-      {
-        "unit": 167,
-        "life": 263,
-        "first_alarm_cycle": 236,
-        "lead_time": 27
-      },
-      {
-        "unit": 169,
-        "life": 227,
-        "first_alarm_cycle": 205,
-        "lead_time": 22
-      },
-      {
-        "unit": 171,
-        "life": 399,
-        "first_alarm_cycle": 350,
-        "lead_time": 49
-      },
-      {
-        "unit": 178,
-        "life": 170,
-        "first_alarm_cycle": 147,
-        "lead_time": 23
-      },
-      {
-        "unit": 179,
-        "life": 435,
-        "first_alarm_cycle": 217,
-        "lead_time": 218
-      },
-      {
-        "unit": 186,
-        "life": 163,
-        "first_alarm_cycle": 152,
-        "lead_time": 11
-      },
-      {
-        "unit": 197,
-        "life": 170,
-        "first_alarm_cycle": 138,
-        "lead_time": 32
-      },
-      {
-        "unit": 204,
-        "life": 211,
-        "first_alarm_cycle": 185,
-        "lead_time": 26
-      },
-      {
-        "unit": 205,
-        "life": 242,
-        "first_alarm_cycle": 195,
-        "lead_time": 47
-      },
-      {
-        "unit": 208,
-        "life": 290,
-        "first_alarm_cycle": 249,
-        "lead_time": 41
-      },
-      {
-        "unit": 218,
-        "life": 236,
-        "first_alarm_cycle": 209,
-        "lead_time": 27
-      },
-      {
-        "unit": 220,
-        "life": 202,
-        "first_alarm_cycle": 185,
-        "lead_time": 17
-      },
-      {
-        "unit": 221,
-        "life": 274,
-        "first_alarm_cycle": 240,
-        "lead_time": 34
-      },
-      {
         "unit": 222,
         "life": 202,
-        "first_alarm_cycle": 180,
-        "lead_time": 22
+        "first_alarm_cycle": 172,
+        "lead_time": 30
       },
       {
         "unit": 225,
         "life": 418,
-        "first_alarm_cycle": 390,
-        "lead_time": 28
+        "first_alarm_cycle": 377,
+        "lead_time": 41
       },
       {
         "unit": 226,
         "life": 194,
-        "first_alarm_cycle": 181,
-        "lead_time": 13
+        "first_alarm_cycle": 170,
+        "lead_time": 24
       },
       {
         "unit": 235,
         "life": 199,
-        "first_alarm_cycle": 175,
-        "lead_time": 24
+        "first_alarm_cycle": 168,
+        "lead_time": 31
       },
       {
         "unit": 239,
         "life": 365,
-        "first_alarm_cycle": 336,
-        "lead_time": 29
+        "first_alarm_cycle": 312,
+        "lead_time": 53
       },
       {
         "unit": 241,
         "life": 332,
-        "first_alarm_cycle": 305,
-        "lead_time": 27
+        "first_alarm_cycle": 296,
+        "lead_time": 36
       },
       {
         "unit": 245,
         "life": 205,
-        "first_alarm_cycle": 191,
-        "lead_time": 14
+        "first_alarm_cycle": 187,
+        "lead_time": 18
       }
     ]
   },
@@ -426,9 +436,26 @@
     "false_alarm": {
       "unit": 179,
       "life": 435,
-      "count": 35,
+      "count": 59,
       "cycles": [
+        190,
+        191,
+        192,
+        193,
+        194,
+        196,
+        197,
+        203,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
         212,
+        213,
+        214,
         215,
         216,
         217,
@@ -456,16 +483,40 @@
         239,
         240,
         241,
-        396,
-        397,
-        399,
-        400,
-        401,
-        403,
-        404
+        381,
+        382,
+        383,
+        384,
+        385,
+        386,
+        387,
+        388,
+        389,
+        390,
+        391,
+        392,
+        393,
+        394
       ],
       "rul_at_cycles": [
+        245,
+        244,
+        243,
+        242,
+        241,
+        239,
+        238,
+        232,
+        230,
+        229,
+        228,
+        227,
+        226,
+        225,
+        224,
         223,
+        222,
+        221,
         220,
         219,
         218,
@@ -493,17 +544,41 @@
         196,
         195,
         194,
-        39,
-        38,
-        36,
-        35,
-        34,
-        32,
-        31
+        54,
+        53,
+        52,
+        51,
+        50,
+        49,
+        48,
+        47,
+        46,
+        45,
+        44,
+        43,
+        42,
+        41
       ],
       "sensor": "s3",
       "sensor_ma15_at_cycles": [
+        1418.75,
+        1417.99,
+        1417.87,
+        1417.61,
+        1418.07,
+        1418.22,
+        1418.0,
+        1418.97,
+        1419.67,
+        1420.29,
+        1420.58,
+        1421.35,
+        1421.98,
+        1421.86,
+        1422.24,
         1422.63,
+        1423.06,
+        1423.2,
         1423.64,
         1423.76,
         1424.21,
@@ -531,38 +606,58 @@
         1427.78,
         1428.66,
         1429.29,
-        1422.87,
-        1422.46,
-        1422.57,
-        1422.9,
-        1423.3,
-        1423.36,
-        1423.28
+        1419.6,
+        1419.57,
+        1420.18,
+        1420.43,
+        1420.54,
+        1420.88,
+        1421.41,
+        1421.37,
+        1421.02,
+        1421.72,
+        1422.53,
+        1422.58,
+        1422.89,
+        1423.22
       ]
     },
     "missed": {
-      "unit": 105,
-      "life": 170,
-      "count": 16,
+      "unit": 245,
+      "life": 205,
+      "count": 19,
       "cycles": [
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146,
-        147,
-        148,
-        149,
-        150,
-        151,
-        152,
-        153,
-        154,
-        155
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        184
       ],
       "rul_at_cycles": [
+        40,
+        39,
+        38,
+        37,
+        36,
+        35,
+        34,
+        33,
+        32,
+        31,
         30,
         29,
         28,
@@ -571,35 +666,31 @@
         25,
         24,
         23,
-        22,
-        21,
-        20,
-        19,
-        18,
-        17,
-        16,
-        15
+        21
       ],
       "sensor": "s3",
       "sensor_ma15_at_cycles": [
-        1421.89,
-        1421.98,
-        1422.47,
-        1422.78,
-        1422.92,
-        1422.87,
-        1422.86,
-        1423.37,
-        1423.29,
-        1422.94,
-        1423.42,
-        1423.71,
-        1423.8,
-        1423.82,
-        1424.58,
-        1425.36
+        1419.52,
+        1419.77,
+        1419.96,
+        1419.74,
+        1420.54,
+        1420.03,
+        1420.15,
+        1420.28,
+        1420.79,
+        1420.78,
+        1420.88,
+        1421.45,
+        1421.94,
+        1422.22,
+        1422.71,
+        1422.67,
+        1422.46,
+        1422.68,
+        1423.05
       ]
     },
-    "typical_at_danger_entry": 1424.15
+    "typical_at_danger_entry": 1422.42
   }
 }

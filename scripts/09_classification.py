@@ -35,7 +35,7 @@ from common import (
     OUT_FIG, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
-# 위험 기준(잔여 ≤ 30사이클, [임의 설정값 #11])은 대시보드 빨간불과 같은 값을 쓰도록
+# 위험 기준(잔여 ≤ 40사이클, [임의 설정값 #11])은 대시보드 빨간불과 같은 값을 쓰도록
 # common.py 7번 섹션의 DANGER_RUL에 있습니다.
 
 # 이동 Z-score 기준 모델 설정
@@ -76,7 +76,7 @@ train_feat = build_rf_features(train_df, active_sensors)
 val_feat = build_rf_features(val_df, active_sensors)
 feature_cols = [c for c in train_feat.columns if c not in ("unit", "cycle", "RUL")]
 
-# RUL은 125에서 잘려 있지만, 30 이하 구간은 잘리지 않은 값과 같으므로 라벨에 그대로 써도 됩니다.
+# RUL은 125에서 잘려 있지만, 위험 기준(40) 이하 구간은 잘리지 않은 값과 같으므로 라벨에 그대로 써도 됩니다.
 train_feat["danger"] = (train_feat["RUL"] <= DANGER_RUL).astype(int)
 val_feat["danger"] = (val_feat["RUL"] <= DANGER_RUL).astype(int)
 
@@ -193,15 +193,15 @@ val_preds = {
     "기준모델(이동 Z-score)": (hi_val["HI"].to_numpy() >= tau).astype(int),
     "RandomForest 분류(임곗값 0.5)": (p_val >= 0.5).astype(int),
     f"RandomForest 분류(임곗값 {prob_th:.2f})": (p_val >= prob_th).astype(int),
-    "RF 회귀→분류(예측 RUL≤30)": (align(rf_reg_val, val_feat) <= DANGER_RUL).astype(int),
-    "LSTM 회귀→분류(예측 RUL≤30)": (align(lstm_val, val_feat) <= DANGER_RUL).astype(int),
+    f"RF 회귀→분류(예측 RUL≤{DANGER_RUL})": (align(rf_reg_val, val_feat) <= DANGER_RUL).astype(int),
+    f"LSTM 회귀→분류(예측 RUL≤{DANGER_RUL})": (align(lstm_val, val_feat) <= DANGER_RUL).astype(int),
 }
 test_preds = {
     "기준모델(이동 Z-score)": (hi_test["HI"].to_numpy() >= tau).astype(int),
     "RandomForest 분류(임곗값 0.5)": (p_test >= 0.5).astype(int),
     f"RandomForest 분류(임곗값 {prob_th:.2f})": (p_test >= prob_th).astype(int),
-    "RF 회귀→분류(예측 RUL≤30)": (test_last[["unit"]].merge(rf_reg_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
-    "LSTM 회귀→분류(예측 RUL≤30)": (test_last[["unit"]].merge(lstm_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
+    f"RF 회귀→분류(예측 RUL≤{DANGER_RUL})": (test_last[["unit"]].merge(rf_reg_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
+    f"LSTM 회귀→분류(예측 RUL≤{DANGER_RUL})": (test_last[["unit"]].merge(lstm_test, on="unit")["RUL_pred"].to_numpy() <= DANGER_RUL).astype(int),
 }
 
 rows = []
@@ -255,10 +255,10 @@ fig.savefig(f"{OUT_FIG}/cls_threshold_tradeoff.png")
 plt.close(fig)
 
 # ---------------------------------------------------------------------------
-# 6. 위험 기준(20/30/50)을 바꿔가며 성능 비교 + 경보 선행시간
+# 6. 위험 기준(20~60)을 바꿔가며 성능 비교 + 경보 선행시간
 # ---------------------------------------------------------------------------
 sens = []
-for n in (20, 30, 50):
+for n in (20, 30, 40, 50, 60):
     yt = (train_feat["RUL"] <= n).astype(int)
     yv = (val_feat["RUL"] <= n).astype(int)
     pv = RandomForestClassifier(**RF_PARAMS).fit(X_train, yt).predict_proba(val_feat[feature_cols])[:, 1]
@@ -303,7 +303,7 @@ except FileNotFoundError:
     PLOT_SENSOR, _meaning = "s4", ""
 PLOT_LABEL = f"{PLOT_SENSOR} {_meaning}".strip()
 
-# 비교용: train 엔진들이 위험 구간에 들어설 때(잔여 30) 그 센서의 평균값
+# 비교용: train 엔진들이 위험 구간에 들어설 때(잔여 = 위험 기준) 그 센서의 평균값
 typical_at_danger = tr[tr["RUL"].between(DANGER_RUL - 2, DANGER_RUL + 2)][PLOT_SENSOR].mean()
 
 

@@ -37,7 +37,7 @@
 공식 test 엔진은 고장 전에 기록이 끊겨 있어 "언제 고장 났는지"를 알 수 없으므로 쓸 수 없습니다.
 
 실행: python scripts/13_threshold_cost.py   (FD004: CMAPSS_DATASET=FD004, 약 1분)
-결과: outputs/metrics/threshold_cost.csv, threshold_cost_summary.csv, outputs/figures/threshold_cost.png
+결과: outputs/<데이터셋>/metrics/threshold_cost.csv, threshold_cost_summary.csv, outputs/<데이터셋>/figures/threshold_cost.png
 """
 
 import numpy as np
@@ -54,6 +54,7 @@ REVIEW_EVERY = 7           # 문헌 (1): 정비 계획 매주 갱신
 N_SIM = 200                # 무작위 반복 횟수
 N_GRID = list(range(10, 81, 5))
 MODELS = {"LSTM (04번)": "lstm", "RandomForest (03번)": "rf"}
+OLD_DANGER_RUL = 30        # 이 분석 전에 쓰던 기준 (과제 문서 예시값) — 비교용으로 함께 기록
 
 life = load_raw(TRAIN_FILE).groupby("unit")["cycle"].max()
 
@@ -98,19 +99,21 @@ for name, key in MODELS.items():
 res = pd.DataFrame(rows)
 res.to_csv(f"{OUT_METRICS}/threshold_cost.csv", index=False, encoding="utf-8-sig")
 
-# 기준값 요약: 최적 N, 그 비용, 그리고 현재 기준(30)·최적의 5% 이내 범위
+# 기준값 요약: 최적 N, 그 비용, 현재 기준(DANGER_RUL)과 예전 기준(30)의 결과, 최적의 5% 이내 범위
 summary = []
 for (m, c), g in res.groupby(["model", "cost_ratio"]):
     best = g.loc[g["cost_per_1000_cycles"].idxmin()]
     near = g[g["cost_per_1000_cycles"] <= best["cost_per_1000_cycles"] * 1.05]["N"]
-    at30 = g.loc[g["N"] == DANGER_RUL].iloc[0]
-    summary.append({"model": m, "cost_ratio": c, "best_N": int(best["N"]),
-                    "best_cost": round(best["cost_per_1000_cycles"], 2),
-                    "best_failure_rate": round(best["failure_rate"], 3),
-                    "best_wasted_cycles": round(best["avg_wasted_cycles"], 1),
-                    "within_5pct_N": f"{near.min()}~{near.max()}",
-                    f"N{DANGER_RUL}_failure_rate": round(at30["failure_rate"], 3),
-                    f"N{DANGER_RUL}_extra_cost_pct": round((at30["cost_per_1000_cycles"] / best["cost_per_1000_cycles"] - 1) * 100, 1)})
+    row = {"model": m, "cost_ratio": c, "best_N": int(best["N"]),
+           "best_cost": round(best["cost_per_1000_cycles"], 2),
+           "best_failure_rate": round(best["failure_rate"], 3),
+           "best_wasted_cycles": round(best["avg_wasted_cycles"], 1),
+           "within_5pct_N": f"{near.min()}~{near.max()}"}
+    for n in sorted({DANGER_RUL, OLD_DANGER_RUL}):
+        at = g.loc[g["N"] == n].iloc[0]
+        row[f"N{n}_failure_rate"] = round(at["failure_rate"], 3)
+        row[f"N{n}_extra_cost_pct"] = round((at["cost_per_1000_cycles"] / best["cost_per_1000_cycles"] - 1) * 100, 1)
+    summary.append(row)
 summary = pd.DataFrame(summary)
 summary.to_csv(f"{OUT_METRICS}/threshold_cost_summary.csv", index=False, encoding="utf-8-sig")
 
@@ -142,7 +145,7 @@ for name in MODELS:
 axes[2].set_title("정비 전에 고장 나는 엔진 비율 (비용 비율과 무관)", loc="left", fontsize=10)
 axes[2].set_ylabel("정비 전 고장 비율 (%)")
 for ax in axes:
-    ax.axvline(DANGER_RUL, color="#8a8985", linestyle="--", linewidth=1, label=f"기존 기준 N = {DANGER_RUL}")
+    ax.axvline(DANGER_RUL, color="#8a8985", linestyle="--", linewidth=1, label=f"현재 기준 N = {DANGER_RUL}")
     ax.set_xlabel("위험 기준 N (예측 RUL ≤ N 이면 정비 경보, cycle)")
     ax.grid(color="#e4e3df", linewidth=0.8)
     ax.set_axisbelow(True)
