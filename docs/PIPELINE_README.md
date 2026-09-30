@@ -22,7 +22,7 @@ knda_python_project/
     11_model_screening.py        [추가 실험] 후보 모델 비교 (최종 모델 선택 근거)
     12_seed_check.py             [추가 실험] 딥러닝 결과가 시드에 따라 얼마나 흔들리는지 확인
     13_threshold_cost.py         위험 기준 40의 근거: 문헌 운영 조건으로 운행 1사이클당 정비 비용 시뮬레이션
-    14_plot_alarm_rates.py       11번 결과를 그림으로: 모델별 MAE·미탐율·오탐율
+    14_plot_alarm_rates.py       11번 결과를 그림으로: 모델별 MAE·미탐율·오탐율 막대 + MAE 대비 경보 오류율 산점도
   outputs/
     FD004/               주 결과 (아래 4개 폴더)
       figures/             그래프 이미지 (EDA, 모델비교, 오류사례, 혼동행렬, 피처중요도, 정비 비용)

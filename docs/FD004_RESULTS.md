@@ -90,7 +90,8 @@ FD001은 운전조건이 하나라 세 가지 모두 일반 계산과 같습니�
 ## 6. 모델 비교 — LSTM이 최선인가? (`11_model_screening.py`, `14_plot_alarm_rates.py`)
 
 회귀 후보 8종을 같은 분할·같은 평가로 비교하고, 각 모델의 예측 RUL ≤ 40을 경보로 썼을 때 미탐율·오탐율도 계산했습니다.
-그림: `outputs/FD004/figures/model_alarm_rates.png` (MAE / 미탐율 / 오탐율을 나란히)
+그림: `outputs/FD004/figures/model_alarm_rates.png` (MAE / 미탐율 / 오탐율을 나란히),
+`outputs/FD004/figures/model_alarm_vs_mae.png` (가로 MAE × 세로 미탐율·오탐율·헛경보비율 산점도 + 회귀선)
 
 | 모델 | 종류 | test MAE | test RMSE | validation 미탐율 | validation 오탐율 |
 |---|---|---|---|---|---|
@@ -105,6 +106,9 @@ FD001은 운전조건이 하나라 세 가지 모두 일반 계산과 같습니�
 | 베이스라인 (센서 미사용) | 기준 | 47.42 | 59.01 | 45.7% | 16.8% |
 
 - **엔진의 전체 이력을 기억하는 순환 신경망(LSTM·GRU)이 가장 좋고**, 표 형태 모델들은 서로 비슷한 수준.
+- **MAE가 작은 모델일수록 미탐율도 낮음** (상관계수 r = 0.87, MAE 1사이클당 미탐율 약 4%p). 반면 오탐율(r = −0.13)·헛경보비율(r = 0.13)은
+  MAE와 거의 무관 — 평균 오차가 작다고 괜한 경보까지 줄지는 않음. 예: Ridge는 MAE가 가장 크지만 예측을 높게 잡는 경향이라 경보를 적게 울려
+  오탐은 가장 적은 대신 위험의 40%를 놓침. GRU는 세 가지 모두 가장 낮음.
 - GRU가 LSTM보다 조금 더 좋음. FD001에서 시드 3개로 반복해도 GRU가 일관되게 앞섬
   (test MAE 평균 GRU 9.94 vs LSTM 11.63, `outputs/FD001/metrics/seed_check.csv`).
   다만 차이가 작고 참고자료(MathWorks) 구조를 그대로 따른 LSTM의 설명 근거가 명확해 LSTM을 유지 — 개선 후보로 기록.
