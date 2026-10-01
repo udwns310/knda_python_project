@@ -22,7 +22,8 @@
 | **RandomForest 분류 (경보 임곗값 0.36)** | 0.84 | **0.89** | **0.86** | 0.89 |
 
 - 비행 조건이 계속 바뀌는 FD004에서 단순한 Z-score 기준 모델은 크게 무너지지만(0.86 → 0.58), 머신러닝은 성능을 대부분 지킵니다.
-- 공식 test 엔진 248대(마지막 관측 시점, 위험 엔진 69대)에서 RandomForest 분류 F1 0.92.
+- 공식 test 엔진 248대(마지막 관측 시점, 위험 엔진 69대)에서 RandomForest 분류 F1 0.92. 위험 엔진이 69대뿐이라 재현율 0.94는 95% 구간이 0.86~0.98입니다
+  (신뢰구간·엔진 단위 지표·한계: [`docs/FD004_RESULTS.md`](docs/FD004_RESULTS.md) 4장).
 
 **선택 과제 — 잔존수명(RUL) 회귀** (공식 test 엔진의 마지막 관측 시점, 단위: 사이클)
 
@@ -68,7 +69,7 @@ python scripts/05_evaluate.py              # 회귀 모델 비교 + 오류 사�
 python scripts/06_domain_interpretation.py # 센서 중요도 해석
 python scripts/07_export_dashboard.py      # 대시보드용 JSON
 python scripts/08_export_dashboard_ts.py   # 대시보드 레포가 읽는 mock.ts
-python scripts/09_classification.py        # [필수 과제] 고장 임박 이진 분류 (FD004 약 5분)
+python scripts/09_classification.py        # [필수 과제] 고장 임박 이진 분류 + 신뢰구간 (FD004 약 5분)
 ```
 결과는 `outputs/FD004/` 아래에 저장됩니다 (그림: `figures/`, 수치: `metrics/`).
 비교용 FD001은 환경변수만 바꿔 같은 순서로 실행합니다 → `outputs/FD001/`.
@@ -116,11 +117,11 @@ knda_python_project/
 │   ├── 06_domain_interpretation.py ← 센서 중요도·도메인 해석
 │   ├── 07_export_dashboard.py      ← 대시보드용 JSON
 │   ├── 08_export_dashboard_ts.py   ← 대시보드 레포용 mock.ts
-│   ├── 09_classification.py        ← [필수 과제] 고장 임박 이진 분류
+│   ├── 09_classification.py        ← [필수 과제] 고장 임박 이진 분류 (+ 신뢰구간·엔진 단위 헛경보)
 │   ├── 10_cross_dataset.py         ← [추가 실험] FD004 ↔ FD001 교차 검증
-│   ├── 11_model_screening.py       ← [추가 실험] 후보 모델 비교 (MAE·오탐·미탐율)
+│   ├── 11_model_screening.py       ← [추가 실험] 후보 모델 비교 (MAE·오탐·미탐율, 후보별 예측 저장)
 │   ├── 12_seed_check.py            ← [추가 실험] 딥러닝 시드별 흔들림 확인
-│   ├── 13_threshold_cost.py        ← 위험 기준(40)의 근거: 문헌 운영 조건의 정비 비용 시뮬레이션
+│   ├── 13_threshold_cost.py        ← 위험 기준(40)의 근거 + 후보 모델별 정비 비용: 문헌 운영 조건 시뮬레이션
 │   └── 14_plot_alarm_rates.py      ← 회귀 모델별 MAE·미탐율·오탐율 그림
 ├── outputs/
 │   ├── FD004/               ← 중심 데이터셋 결과

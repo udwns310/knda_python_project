@@ -17,11 +17,11 @@ knda_python_project/
     06_domain_interpretation.py  도메인 해석 (센서 중요도 vs 추세성)
     07_export_dashboard.py       대시보드용 데이터 export (JSON)
     08_export_dashboard_ts.py    대시보드 레포가 실제로 읽는 mock.ts 생성
-    09_classification.py         [필수 과제] 고장 임박(잔여 ≤ 40) 이진 분류: Z-score 기준 모델 vs RandomForest
+    09_classification.py         [필수 과제] 고장 임박(잔여 ≤ 40) 이진 분류: Z-score 기준 모델 vs RandomForest (+ 신뢰구간·엔진 단위 지표)
     10_cross_dataset.py          [추가 실험] FD001 ↔ FD004 교차 검증 (한 데이터로 학습 → 다른 데이터에 적용)
-    11_model_screening.py        [추가 실험] 후보 모델 비교 (최종 모델 선택 근거)
+    11_model_screening.py        [추가 실험] 후보 모델 비교 (최종 모델 선택 근거, 후보별 validation 예측 저장)
     12_seed_check.py             [추가 실험] 딥러닝 결과가 시드에 따라 얼마나 흔들리는지 확인
-    13_threshold_cost.py         위험 기준 40의 근거: 문헌 운영 조건으로 운행 1사이클당 정비 비용 시뮬레이션
+    13_threshold_cost.py         위험 기준 40의 근거 + 후보 모델별 정비 비용: 문헌 운영 조건으로 운행 1사이클당 정비 비용 시뮬레이션
     14_plot_alarm_rates.py       11번 결과를 그림으로: 모델별 MAE·미탐율·오탐율 막대 + MAE 대비 경보 오류율 산점도
   outputs/
     FD004/               주 결과 (아래 4개 폴더)
@@ -67,7 +67,7 @@ python scripts/09_classification.py        # 필수 과제: 고장 임박 이진
 python scripts/10_cross_dataset.py     # FD001과 FD004 모두 03·04·09번을 먼저 실행해 둬야 함 (약 1분)
 python scripts/11_model_screening.py   # 후보 모델 비교 (FD004 약 20분, FD001 약 5분)
 python scripts/12_seed_check.py        # GRU·LSTM을 시드 3개로 반복 학습 (GRU 선정 근거) (FD001 약 25분)
-python scripts/13_threshold_cost.py    # 위험 기준 40의 근거 — 정비 비용 시뮬레이션 (03·04번 결과 필요, 몇 초)
+python scripts/13_threshold_cost.py    # 위험 기준 40의 근거와 후보 모델별 비용 (03·04번, 후보 전부 비용은 11번 결과 필요, 약 3분)
 python scripts/14_plot_alarm_rates.py  # 11번 결과 그림 (몇 초)
 ```
 추가 실험은 최종 모델을 고르고 결과를 검증하기 위한 탐색 단계입니다. 과정 진행 가이드의
