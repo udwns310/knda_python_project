@@ -1,0 +1,19 @@
+﻿model,cost_ratio,cost_at_N40,failure_rate_at_N40,best_N,best_cost
+Ridge (선형회귀),1:5 (de Pater 2022),9.77,0.179,65,6.76
+Ridge (선형회귀),1:2 (Lee & Mitici 2023),6.71,0.179,55,6.31
+ExtraTrees,1:5 (de Pater 2022),7.62,0.081,70,6.54
+ExtraTrees,1:2 (Lee & Mitici 2023),6.22,0.081,45,6.18
+HistGradientBoosting,1:5 (de Pater 2022),6.66,0.032,50,6.23
+HistGradientBoosting,1:2 (Lee & Mitici 2023),6.1,0.032,35,5.97
+MLP (신경망 64-32),1:5 (de Pater 2022),6.86,0.038,50,6.33
+MLP (신경망 64-32),1:2 (Lee & Mitici 2023),6.19,0.038,35,6.08
+"베이스라인 (02번, 센서 미사용)",1:5 (de Pater 2022),14.77,0.404,80,8.42
+"베이스라인 (02번, 센서 미사용)",1:2 (Lee & Mitici 2023),7.92,0.404,75,7.22
+RandomForest (03번),1:5 (de Pater 2022),6.98,0.052,60,6.44
+RandomForest (03번),1:2 (Lee & Mitici 2023),6.08,0.052,40,6.08
+GRU (04번),1:5 (de Pater 2022),5.96,0.0,30,5.78
+GRU (04번),1:2 (Lee & Mitici 2023),5.96,0.0,30,5.69
+LSTM (MathWorks 원형),1:5 (de Pater 2022),5.94,0.0,35,5.88
+LSTM (MathWorks 원형),1:2 (Lee & Mitici 2023),5.94,0.0,30,5.81
+1D-CNN (30사이클 창),1:5 (de Pater 2022),6.62,0.033,45,6.49
+1D-CNN (30사이클 창),1:2 (Lee & Mitici 2023),6.04,0.033,40,6.04
