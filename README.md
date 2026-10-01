@@ -47,7 +47,7 @@ FD004 결과의 자세한 해석은 [`docs/FD004_RESULTS.md`](docs/FD004_RESULTS
 ## 실행 방법
 
 ### 1. 환경 준비
-Python 3.10 이상에서 확인했습니다 (개발: Python 3.14, Windows 11, CPU).
+Python 3.14, Windows 11, CPU 환경에서 개발하고 실행해 확인했습니다 (다른 Python 버전은 확인하지 않았습니다).
 ```bash
 pip install -r requirements.txt
 ```
