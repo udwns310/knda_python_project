@@ -159,3 +159,40 @@ fig.tight_layout()
 fig.savefig(f"{OUT_FIG}/threshold_cost.png", dpi=130)
 plt.close(fig)
 print(f"\n저장: {OUT_METRICS}/threshold_cost*.csv, {OUT_FIG}/threshold_cost.png")
+
+# ---------------------------------------------------------------------------
+# 후보 모델 전부의 정비 비용 (11번이 저장한 validation 예측이 있을 때)
+# ---------------------------------------------------------------------------
+# 위 시뮬레이션은 GRU·RandomForest만 보여 줍니다. 모델 선정 근거(DESIGN_DECISIONS #14)에는 후보 전부가
+# 같은 규칙으로 비교돼야 해서, 11번이 저장한 후보별 예측(model_screening_val_predictions.csv)으로 같은
+# 시뮬레이션(같은 규칙·같은 시드)을 돌립니다. 두 가지를 기록합니다.
+#   - 현재 위험 기준(DANGER_RUL)에서의 비용과 정비 전 고장 비율
+#   - 모델마다 가장 싼 기준 N과 그때의 비용 (모델별로 최적 기준이 달라서, 한 기준에서만 보면 불공정할 수 있음)
+import os
+_pred_path = f"{OUT_METRICS}/model_screening_val_predictions.csv"
+if os.path.exists(_pred_path):
+    allp = pd.read_csv(_pred_path)
+    model_cols = [c for c in allp.columns if c not in ("unit", "cycle", "RUL_true")]
+    rows_all = []
+    for name in model_cols:
+        d = allp[["unit", "cycle", name]].rename(columns={name: "RUL_pred"}).sort_values(["unit", "cycle"])
+        for n in N_GRID:
+            alarm = {u: (int(g.loc[g["RUL_pred"] <= n, "cycle"].iloc[0]) if (g["RUL_pred"] <= n).any() else None)
+                     for u, g in d.groupby("unit")}
+            for cname, cf in COST_SETTINGS.items():
+                rows_all.append({"model": name, "cost_ratio": cname, "N": n, **simulate(alarm, N_SIM, cf)})
+    all_res = pd.DataFrame(rows_all)
+    out = []
+    for (m, c), g in all_res.groupby(["model", "cost_ratio"], sort=False):
+        at = g.loc[g["N"] == DANGER_RUL].iloc[0]
+        best = g.loc[g["cost_per_1000_cycles"].idxmin()]
+        out.append({"model": m, "cost_ratio": c,
+                    f"cost_at_N{DANGER_RUL}": round(at["cost_per_1000_cycles"], 2),
+                    f"failure_rate_at_N{DANGER_RUL}": round(at["failure_rate"], 3),
+                    "best_N": int(best["N"]), "best_cost": round(best["cost_per_1000_cycles"], 2)})
+    cost_all = pd.DataFrame(out)
+    cost_all.to_csv(f"{OUT_METRICS}/model_screening_cost.csv", index=False, encoding="utf-8-sig")
+    print(f"\n[{DATASET}] 후보 모델 전부의 정비 비용 (validation, 위험 기준 {DANGER_RUL}과 모델별 최적 기준)")
+    print(cost_all.to_string(index=False))
+else:
+    print("\n(11번을 먼저 실행하면 후보 모델 전부의 비용도 계산합니다)")

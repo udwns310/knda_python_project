@@ -15,6 +15,7 @@
   - 혼동행렬 + Precision·Recall·F1         → 5번 (정확도 단독 보고 안 함)
   - 임곗값 조정 시 보전 관점 근거          → 4번 [임의 설정값 #12]
   - 오탐 1건·미탐 1건 이상을 시계열 위에 → 7번 (그림 2장)
+  - (추가) 숫자의 신뢰구간·엔진 단위 헛경보  → 9번 (classification_uncertainty.json)
   - 선택 과제: 회귀 vs 분류 비교           → 5·6번 (GRU 회귀 예측을 임곗값으로 잘라 같은 조건에서 비교)
 
 실행 순서: 01 ~ 06 다음 (03·04번의 예측 결과 CSV를 비교용으로, 06번의 센서 해석 결과를 그래프
@@ -373,3 +374,91 @@ with open(f"{OUT_METRICS}/classification_metrics.json", "w", encoding="utf-8") a
     }, f, ensure_ascii=False, indent=2)
 print(f"\n저장: {OUT_METRICS}/classification_metrics.json, classification_comparison.csv, "
       f"figures/cls_*.png")
+
+
+# ---------------------------------------------------------------------------
+# 9. 숫자를 얼마나 믿을 수 있나 — 신뢰구간과 엔진 단위 지표
+# ---------------------------------------------------------------------------
+# 위 표의 점수는 "한 번 나눈 결과"입니다. 특히
+#   - 공식 test는 위험 엔진이 몇십 대뿐이라 비율이 크게 흔들리고,
+#   - validation은 사이클이 1만 개가 넘어도 같은 엔진의 연속 사이클은 거의 같은 정보라서
+#     실제로 독립된 표본은 엔진 수(FD004 49대)입니다.
+# 그래서 두 가지를 계산해 둡니다.
+#   (1) test 재현율·정밀도의 95% 신뢰구간 (Wilson 구간 — 표본이 작을 때 쓰는 이항비율 구간)
+#   (2) validation F1의 95% 구간: 엔진 단위로 다시 뽑는 부트스트랩 (엔진을 49대 중복 허용으로 뽑아
+#       F1을 다시 계산, 2,000번). 최종 RandomForest 분류와 GRU 회귀→분류의 차이도 같은 방식으로.
+#   (3) 엔진 단위 지표: 안전 구간(잔여 > 위험 기준)에서 한 번이라도 경보가 울린 엔진 수 (헛경보를 겪은 엔진)
+# 사이클 단위 헛경보비율(예: 5%)은 작아 보여도, 엔진 단위로 보면 더 많은 엔진이 헛경보를 겪을 수 있습니다.
+import math
+
+BOOT_N, BOOT_SEED = 2000, 0
+
+
+def wilson(k: int, n: int, z: float = 1.96):
+    if n == 0:
+        return None
+    p = k / n
+    d = 1 + z * z / n
+    c = p + z * z / (2 * n)
+    r = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
+    return [round((c - r) / d, 3), round((c + r) / d, 3)]
+
+
+unc = {"bootstrap": {"resamples": BOOT_N, "seed": BOOT_SEED}, "test_wilson_95": {}, "validation": {}}
+for name, pred in test_preds.items():
+    s = scores(test_last["danger"], pred)
+    unc["test_wilson_95"][name] = {
+        "recall": [s["recall"], wilson(s["TP"], s["TP"] + s["FN"])],
+        "precision": [s["precision"], wilson(s["TP"], s["TP"] + s["FP"])],
+    }
+
+rf_name = f"RandomForest 분류(임곗값 {prob_th:.2f})"
+gru_name = f"GRU 회귀→분류(예측 RUL≤{DANGER_RUL})"
+units_val = val_feat["unit"].to_numpy()
+y_val = val_feat["danger"].to_numpy()
+uniq = np.unique(units_val)
+per_engine = {}
+for name in (rf_name, gru_name):
+    p = val_preds[name]
+    per_engine[name] = np.array([[((y_val == 1) & (p == 1) & (units_val == u)).sum(),
+                                  ((y_val == 0) & (p == 1) & (units_val == u)).sum(),
+                                  ((y_val == 1) & (p == 0) & (units_val == u)).sum()] for u in uniq])  # TP, FP, FN
+
+
+def f1_from(c):
+    tp, fp, fn = c.sum(axis=0)
+    return 2 * tp / (2 * tp + fp + fn)
+
+
+rng = np.random.default_rng(BOOT_SEED)
+draws = {n: [] for n in per_engine}
+diffs = []
+for _ in range(BOOT_N):
+    idx = rng.integers(0, len(uniq), len(uniq))
+    a, b = f1_from(per_engine[rf_name][idx]), f1_from(per_engine[gru_name][idx])
+    draws[rf_name].append(a)
+    draws[gru_name].append(b)
+    diffs.append(b - a)
+q = lambda x: [round(float(np.percentile(x, 2.5)), 3), round(float(np.percentile(x, 97.5)), 3)]
+unc["validation"]["engines"] = int(len(uniq))
+unc["validation"]["F1_bootstrap_95"] = {n: [round(f1_from(per_engine[n]), 3), q(draws[n])] for n in per_engine}
+unc["validation"]["F1_diff_GRU_minus_RF_95"] = [round(f1_from(per_engine[gru_name]) - f1_from(per_engine[rf_name]), 3), q(diffs)]
+unc["validation"]["share_of_resamples_GRU_better"] = round(float(np.mean(np.array(diffs) > 0)), 3)
+
+safe = y_val == 0
+unc["validation"]["engines_with_any_false_alarm_in_safe_zone"] = {
+    n: int(len({u for u in uniq if ((units_val == u) & safe & (val_preds[n] == 1)).any()})) for n in (rf_name, gru_name)
+}
+with open(f"{OUT_METRICS}/classification_uncertainty.json", "w", encoding="utf-8") as f:
+    json.dump(unc, f, ensure_ascii=False, indent=2)
+
+print("\n[불확실성] test 재현율·정밀도 95% 구간 (Wilson)")
+for n, v in unc["test_wilson_95"].items():
+    print(f"  {n}: 재현율 {v['recall'][0]} {v['recall'][1]}, 정밀도 {v['precision'][0]} {v['precision'][1]}")
+print(f"[불확실성] validation F1 95% 구간 (엔진 {len(uniq)}대 단위 부트스트랩 {BOOT_N}회)")
+for n, v in unc["validation"]["F1_bootstrap_95"].items():
+    print(f"  {n}: F1 {v[0]} {v[1]}")
+print(f"  차이(GRU−RF): {unc['validation']['F1_diff_GRU_minus_RF_95']}, GRU가 나은 비율 {unc['validation']['share_of_resamples_GRU_better']}")
+print(f"[불확실성] 안전 구간에서 한 번이라도 경보를 받은 엔진 수 (전체 {len(uniq)}대): "
+      f"{unc['validation']['engines_with_any_false_alarm_in_safe_zone']}")
+print(f"저장: {OUT_METRICS}/classification_uncertainty.json")

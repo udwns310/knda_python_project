@@ -23,7 +23,8 @@
                   — 과제 문서 권장 목록(RandomForest, LogisticRegression, IsolationForest, One-Class SVM) 중심
 
 실행: python scripts/11_model_screening.py  (CMAPSS_DATASET으로 FD001/FD004 선택, FD004는 약 20분)
-결과: outputs/<데이터셋>/metrics/model_screening_*.csv, outputs/<데이터셋>/figures/model_screening.png
+결과: outputs/<데이터셋>/metrics/model_screening_*.csv (model_screening_val_predictions.csv = 후보별 validation 예측,
+      13번 비용 계산 입력), outputs/<데이터셋>/figures/model_screening.png
 """
 
 import json
@@ -141,6 +142,12 @@ for name, fit, predict in (
 
 reg_res = pd.DataFrame(reg_rows).sort_values("test_RMSE")
 reg_res.to_csv(f"{OUT_METRICS}/model_screening_regression.csv", index=False, encoding="utf-8-sig")
+
+# 모든 후보의 validation 예측을 저장 — 13번이 "모델별 정비 비용"을 계산할 때 읽습니다 (엔진 번호·사이클 순서).
+val_pred_table = val_feat[["unit", "cycle"]].reset_index(drop=True).assign(RUL_true=yva.to_numpy())
+for _name, (_pv, _pt) in reg_preds.items():
+    val_pred_table[_name] = np.asarray(_pv)
+val_pred_table.to_csv(f"{OUT_METRICS}/model_screening_val_predictions.csv", index=False, encoding="utf-8-sig")
 
 # ---------------------------------------------------------------------------
 # 3. 분류 후보 (위험 = 잔여 ≤ DANGER_RUL, 임곗값은 모두 기본값 0.5 — 공정 비교를 위해 조정하지 않음)
