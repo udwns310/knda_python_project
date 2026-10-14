@@ -1,0 +1,36 @@
+{
+  "RF_base": {
+    "val_FP_cycles": 337,
+    "val_FN_cycles": 227,
+    "val_engines_with_false_alarm": 25,
+    "FP_179": 59,
+    "FN_245": 19,
+    "FN_235": 7,
+    "worst_FP_engine": 179,
+    "worst_FP_cycles": 59,
+    "worst_FN_engine": 245,
+    "worst_FN_cycles": 19,
+    "test_TP": 65,
+    "test_FN": 4,
+    "test_FP": 8,
+    "test_recall": 0.942,
+    "n_features": 60
+  },
+  "RF_plus": {
+    "val_FP_cycles": 378,
+    "val_FN_cycles": 182,
+    "val_engines_with_false_alarm": 23,
+    "FP_179": 72,
+    "FN_245": 5,
+    "FN_235": 8,
+    "worst_FP_engine": 179,
+    "worst_FP_cycles": 72,
+    "worst_FN_engine": 71,
+    "worst_FN_cycles": 18,
+    "test_TP": 66,
+    "test_FN": 3,
+    "test_FP": 7,
+    "test_recall": 0.957,
+    "n_features": 90
+  }
+}

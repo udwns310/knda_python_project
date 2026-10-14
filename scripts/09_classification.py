@@ -33,7 +33,7 @@ from sklearn.model_selection import GroupKFold
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, split_engines,
-    Normalizer, build_rf_features, SENSOR_COLS_RAW, SENSOR_UNIT, DANGER_RUL,
+    Normalizer, build_rf_features, SENSOR_COLS_RAW, SENSOR_UNIT, DANGER_RUL, display_unit, display_values,
     OUT_FIG, OUT_METRICS, TRAIN_FILE, TEST_FILE, RUL_FILE, RegimeCorrector, MULTI_REGIME, DATASET,
 )
 
@@ -315,15 +315,15 @@ def plot_case(unit: int, kind: str, filename: str):
     danger_start = int(life[unit]) - DANGER_RUL
     mask = g[kind]
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 6), sharex=True)
-    ax1.plot(r["cycle"], r[PLOT_SENSOR], color="gray", linewidth=0.8,
+    ax1.plot(r["cycle"], display_values(PLOT_SENSOR, r[PLOT_SENSOR]), color="gray", linewidth=0.8,
              label=f"{PLOT_LABEL} (" + ("운전조건 보정값" if MULTI_REGIME else "원값") + ")")
-    ax1.plot(r["cycle"], r[PLOT_SENSOR].rolling(15, min_periods=1).mean(), color="black", label=f"{PLOT_SENSOR} 최근 15사이클 평균")
-    ax1.axhline(typical_at_danger, color="purple", linestyle=":", label=f"train 엔진이 위험 진입할 때 평균 ({typical_at_danger:.1f})")
+    ax1.plot(r["cycle"], display_values(PLOT_SENSOR, r[PLOT_SENSOR].rolling(15, min_periods=1).mean()), color="black", label=f"{PLOT_SENSOR} 최근 15사이클 평균")
+    ax1.axhline(display_values(PLOT_SENSOR, typical_at_danger), color="purple", linestyle=":", label=f"train 엔진이 위험 진입할 때 평균 ({display_values(PLOT_SENSOR, typical_at_danger):.1f})")
     ax1.axvspan(danger_start, r["cycle"].max(), color="red", alpha=0.08, label=f"실제 위험 구간 (잔여 ≤ {DANGER_RUL})")
     c = g.loc[mask, "cycle"]
-    ax1.scatter(c, r.set_index("cycle").loc[c, PLOT_SENSOR], color="orange" if kind == "FP" else "blue", zorder=3, s=18,
+    ax1.scatter(c, display_values(PLOT_SENSOR, r.set_index("cycle").loc[c, PLOT_SENSOR]), color="orange" if kind == "FP" else "blue", zorder=3, s=18,
                 label="오탐 (정상인데 위험 경보)" if kind == "FP" else "미탐 (위험한데 경보 없음)")
-    ax1.set_ylabel(f"{PLOT_SENSOR} ({SENSOR_UNIT[PLOT_SENSOR] or '비율'})" + (", 운전조건 보정" if MULTI_REGIME else ""))
+    ax1.set_ylabel(f"{PLOT_SENSOR} ({display_unit(PLOT_SENSOR) or '비율'})" + (", 운전조건 보정" if MULTI_REGIME else ""))
     ax1.legend(fontsize=7, loc="upper left")
     ax2.plot(g["cycle"], g["p"], color="teal", label="모델이 본 위험 확률")
     ax2.axhline(prob_th, color="crimson", linestyle="--", label=f"경보 임곗값 {prob_th:.2f}")

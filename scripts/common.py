@@ -139,9 +139,20 @@ SENSOR_UNIT = {
 }
 
 
-def sensor_label(col: str) -> str:
-    """그래프 축·범례용 이름. 예) 's4 T50 · LPT(저압터빈) outlet 온도 (°R)'"""
+def display_unit(col: str) -> str:
+    """그래프·발표용 단위. 원자료의 °R(랭킨)은 청중이 알기 쉽게 °C로 바꿔 보여 줍니다."""
     unit = SENSOR_UNIT.get(col, "")
+    return "°C" if unit == "°R" else unit
+
+
+def display_values(col: str, values):
+    """그래프·발표용 값. °R → °C: (°R − 491.67) × 5/9. 다른 단위는 그대로 둡니다 (분석·모델 입력은 원래 값 그대로)."""
+    return (values - 491.67) * 5.0 / 9.0 if SENSOR_UNIT.get(col, "") == "°R" else values
+
+
+def sensor_label(col: str) -> str:
+    """그래프 축·범례용 이름. 예) 's4 T50 · LPT(저압터빈) outlet 온도 (°C)'"""
+    unit = display_unit(col)
     return f"{col} {SENSOR_MEANING.get(col, '')}" + (f" ({unit})" if unit else "")
 
 # ---------------------------------------------------------------------------

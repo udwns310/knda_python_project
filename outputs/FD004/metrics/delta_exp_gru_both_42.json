@@ -1,0 +1,21 @@
+{
+  "val_FP_cycles": 111,
+  "val_FN_cycles": 382,
+  "val_engines_with_false_alarm": 10,
+  "FP_179": 40,
+  "FN_245": 8,
+  "FN_235": 13,
+  "worst_FP_engine": 179,
+  "worst_FP_cycles": 40,
+  "worst_FN_engine": 220,
+  "worst_FN_cycles": 18,
+  "val_MAE": 10.79,
+  "test_TP": 58,
+  "test_FN": 11,
+  "test_FP": 2,
+  "test_recall": 0.841,
+  "test_MAE": 18.79,
+  "variant": "both",
+  "seed": 42,
+  "seconds": 2530
+}

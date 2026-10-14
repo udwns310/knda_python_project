@@ -1,0 +1,130 @@
+{
+  "baseline_cycles": 30,
+  "note": "엔진 분할 seed 42, 학습 seed 42 한 번. RF 경보 기준 0.36, GRU 경보 기준 예측 ≤ 40 (둘 다 다시 조정하지 않음).",
+  "rf": {
+    "RF_base": {
+      "val_FP_cycles": 337,
+      "val_FN_cycles": 227,
+      "val_engines_with_false_alarm": 25,
+      "FP_179": 59,
+      "FN_245": 19,
+      "FN_235": 7,
+      "worst_FP_engine": 179,
+      "worst_FP_cycles": 59,
+      "worst_FN_engine": 245,
+      "worst_FN_cycles": 19,
+      "test_TP": 65,
+      "test_FN": 4,
+      "test_FP": 8,
+      "test_recall": 0.942,
+      "n_features": 60,
+      "val_F1_P_R": [
+        0.863,
+        0.841,
+        0.887
+      ]
+    },
+    "RF_plus": {
+      "val_FP_cycles": 378,
+      "val_FN_cycles": 182,
+      "val_engines_with_false_alarm": 23,
+      "FP_179": 72,
+      "FN_245": 5,
+      "FN_235": 8,
+      "worst_FP_engine": 179,
+      "worst_FP_cycles": 72,
+      "worst_FN_engine": 71,
+      "worst_FN_cycles": 18,
+      "test_TP": 66,
+      "test_FN": 3,
+      "test_FP": 7,
+      "test_recall": 0.957,
+      "n_features": 90,
+      "val_F1_P_R": [
+        0.867,
+        0.829,
+        0.909
+      ]
+    }
+  },
+  "gru": {
+    "base": {
+      "val_FP_cycles": 100,
+      "val_FN_cycles": 231,
+      "val_engines_with_false_alarm": 10,
+      "FP_179": 41,
+      "FN_245": 6,
+      "FN_235": 13,
+      "worst_FP_engine": 179,
+      "worst_FP_cycles": 41,
+      "worst_FN_engine": 235,
+      "worst_FN_cycles": 13,
+      "val_MAE": 7.82,
+      "test_TP": 61,
+      "test_FN": 8,
+      "test_FP": 1,
+      "test_recall": 0.884,
+      "test_MAE": 17.31,
+      "variant": "base",
+      "seed": 42,
+      "seconds": 2541,
+      "val_F1_P_R": [
+        0.915,
+        0.947,
+        0.885
+      ]
+    },
+    "delta": {
+      "val_FP_cycles": 375,
+      "val_FN_cycles": 140,
+      "val_engines_with_false_alarm": 29,
+      "FP_179": 39,
+      "FN_245": 0,
+      "FN_235": 14,
+      "worst_FP_engine": 179,
+      "worst_FP_cycles": 39,
+      "worst_FN_engine": 71,
+      "worst_FN_cycles": 17,
+      "val_MAE": 10.98,
+      "test_TP": 67,
+      "test_FN": 2,
+      "test_FP": 4,
+      "test_recall": 0.971,
+      "test_MAE": 19.02,
+      "variant": "delta",
+      "seed": 42,
+      "seconds": 2536,
+      "val_F1_P_R": [
+        0.879,
+        0.833,
+        0.93
+      ]
+    },
+    "both": {
+      "val_FP_cycles": 111,
+      "val_FN_cycles": 382,
+      "val_engines_with_false_alarm": 10,
+      "FP_179": 40,
+      "FN_245": 8,
+      "FN_235": 13,
+      "worst_FP_engine": 179,
+      "worst_FP_cycles": 40,
+      "worst_FN_engine": 220,
+      "worst_FN_cycles": 18,
+      "val_MAE": 10.79,
+      "test_TP": 58,
+      "test_FN": 11,
+      "test_FP": 2,
+      "test_recall": 0.841,
+      "test_MAE": 18.79,
+      "variant": "both",
+      "seed": 42,
+      "seconds": 2530,
+      "val_F1_P_R": [
+        0.868,
+        0.936,
+        0.81
+      ]
+    }
+  }
+}

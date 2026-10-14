@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 from common import (
     load_raw, find_constant_columns, add_rul_labels, SENSOR_COLS_RAW, RegimeCorrector, MULTI_REGIME, DATASET,
-    RUL_CLIP_VALUE, SENSOR_UNIT, sensor_label,
+    RUL_CLIP_VALUE, SENSOR_UNIT, sensor_label, display_unit, display_values,
 )
 
 # 폴더 경로는 common.py에서 PC에 상관없이 자동으로 계산됩니다 (0번 섹션 참고).
@@ -86,10 +86,10 @@ fig, axes = plt.subplots(len(top_sensors), 1, figsize=(9, 11), sharex=False)
 for ax, col in zip(axes, top_sensors):
     for uid in sample_units:
         g = train[train["unit"] == uid]
-        ax.plot(g["cycle"], g[col], label=f"엔진 #{uid}", alpha=0.8)
+        ax.plot(g["cycle"], display_values(col, g[col]), label=f"엔진 #{uid}", alpha=0.8)
     ax.set_title(f"{sensor_label(col)} — 추세성 |상관계수| = {rank[col]:.2f}", fontsize=10)
     ax.set_xlabel("운행 사이클 (cycle)")
-    ax.set_ylabel(f"{col} ({SENSOR_UNIT[col] or '비율'})" + (", 운전조건 보정" if MULTI_REGIME else ""))
+    ax.set_ylabel(f"{col} ({display_unit(col) or '비율'})" + (", 운전조건 보정" if MULTI_REGIME else ""))
     ax.legend(fontsize=8)
 fig.suptitle(f"추세성 상위 센서 4개의 실제 시계열 (엔진별, {DATASET})")
 fig.tight_layout()
