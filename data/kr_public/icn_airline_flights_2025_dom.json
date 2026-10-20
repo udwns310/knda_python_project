@@ -1,0 +1,68 @@
+{
+ "response": {
+  "header": {
+   "resultCode": "00",
+   "resultMsg": "NORMAL SERVICE."
+  },
+  "body": {
+   "items": [
+    {
+     "airline": "대한항공",
+     "airlineCode": "KE",
+     "arrFlights": "2,258",
+     "depFlights": "2,254",
+     "flights": "4,512"
+    },
+    {
+     "airline": "아시아나항공",
+     "airlineCode": "OZ",
+     "arrFlights": "20",
+     "depFlights": "0",
+     "flights": "20"
+    },
+    {
+     "airline": "에어부산",
+     "airlineCode": "BX",
+     "arrFlights": "4",
+     "depFlights": "0",
+     "flights": "4"
+    },
+    {
+     "airline": "에어서울",
+     "airlineCode": "RS",
+     "arrFlights": "2",
+     "depFlights": "0",
+     "flights": "2"
+    },
+    {
+     "airline": "이스타항공",
+     "airlineCode": "ZE",
+     "arrFlights": "23",
+     "depFlights": "0",
+     "flights": "23"
+    },
+    {
+     "airline": "제주항공",
+     "airlineCode": "7C",
+     "arrFlights": "46",
+     "depFlights": "0",
+     "flights": "46"
+    },
+    {
+     "airline": "진에어",
+     "airlineCode": "LJ",
+     "arrFlights": "12",
+     "depFlights": "0",
+     "flights": "12"
+    },
+    {
+     "airline": "트리니티항공",
+     "airlineCode": "TW",
+     "arrFlights": "5",
+     "depFlights": "0",
+     "flights": "5"
+    }
+   ]
+  }
+ }
+}

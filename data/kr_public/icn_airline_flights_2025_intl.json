@@ -1,0 +1,656 @@
+{
+ "response": {
+  "header": {
+   "resultCode": "00",
+   "resultMsg": "NORMAL SERVICE."
+  },
+  "body": {
+   "items": [
+    {
+     "airline": "KLM네덜란드항공",
+     "airlineCode": "KL",
+     "arrFlights": "304",
+     "depFlights": "304",
+     "flights": "608"
+    },
+    {
+     "airline": "가루다인도네시아",
+     "airlineCode": "GA",
+     "arrFlights": "619",
+     "depFlights": "619",
+     "flights": "1,238"
+    },
+    {
+     "airline": "구원항공",
+     "airlineCode": "AQ",
+     "arrFlights": "11",
+     "depFlights": "11",
+     "flights": "22"
+    },
+    {
+     "airline": "그레이터베이항공",
+     "airlineCode": "HB",
+     "arrFlights": "62",
+     "depFlights": "62",
+     "flights": "124"
+    },
+    {
+     "airline": "길상항공",
+     "airlineCode": "HO",
+     "arrFlights": "22",
+     "depFlights": "22",
+     "flights": "44"
+    },
+    {
+     "airline": "대한항공",
+     "airlineCode": "KE",
+     "arrFlights": "39,343",
+     "depFlights": "39,348",
+     "flights": "78,691"
+    },
+    {
+     "airline": "델타항공",
+     "airlineCode": "DL",
+     "arrFlights": "1,969",
+     "depFlights": "1,968",
+     "flights": "3,937"
+    },
+    {
+     "airline": "라오항공",
+     "airlineCode": "QV",
+     "arrFlights": "313",
+     "depFlights": "313",
+     "flights": "626"
+    },
+    {
+     "airline": "로얄브루나이항공",
+     "airlineCode": "BI",
+     "arrFlights": "157",
+     "depFlights": "157",
+     "flights": "314"
+    },
+    {
+     "airline": "루프트한자 독일항공",
+     "airlineCode": "LH",
+     "arrFlights": "654",
+     "depFlights": "654",
+     "flights": "1,308"
+    },
+    {
+     "airline": "말레이시아 항공",
+     "airlineCode": "MH",
+     "arrFlights": "606",
+     "depFlights": "605",
+     "flights": "1,211"
+    },
+    {
+     "airline": "몽골항공",
+     "airlineCode": "OM",
+     "arrFlights": "785",
+     "depFlights": "784",
+     "flights": "1,569"
+    },
+    {
+     "airline": "미얀마국제항공",
+     "airlineCode": "8M",
+     "arrFlights": "187",
+     "depFlights": "187",
+     "flights": "374"
+    },
+    {
+     "airline": "미얀마항공",
+     "airlineCode": "UB",
+     "arrFlights": "15",
+     "depFlights": "15",
+     "flights": "30"
+    },
+    {
+     "airline": "바틱 에어 말레이시아",
+     "airlineCode": "OD",
+     "arrFlights": "363",
+     "depFlights": "363",
+     "flights": "726"
+    },
+    {
+     "airline": "뱀부 항공",
+     "airlineCode": "QH",
+     "arrFlights": "3",
+     "depFlights": "3",
+     "flights": "6"
+    },
+    {
+     "airline": "베트남항공",
+     "airlineCode": "VN",
+     "arrFlights": "2,203",
+     "depFlights": "2,203",
+     "flights": "4,406"
+    },
+    {
+     "airline": "북경수도항공",
+     "airlineCode": "JD",
+     "arrFlights": "51",
+     "depFlights": "51",
+     "flights": "102"
+    },
+    {
+     "airline": "비엣젯항공",
+     "airlineCode": "VJ",
+     "arrFlights": "5,034",
+     "depFlights": "5,029",
+     "flights": "10,063"
+    },
+    {
+     "airline": "사천항공",
+     "airlineCode": "3U",
+     "arrFlights": "224",
+     "depFlights": "224",
+     "flights": "448"
+    },
+    {
+     "airline": "산동항공",
+     "airlineCode": "SC",
+     "arrFlights": "3,480",
+     "depFlights": "3,479",
+     "flights": "6,959"
+    },
+    {
+     "airline": "상하이항공",
+     "airlineCode": "FM",
+     "arrFlights": "364",
+     "depFlights": "364",
+     "flights": "728"
+    },
+    {
+     "airline": "샤먼항공",
+     "airlineCode": "MF",
+     "arrFlights": "655",
+     "depFlights": "655",
+     "flights": "1,310"
+    },
+    {
+     "airline": "세부퍼시픽항공",
+     "airlineCode": "5J",
+     "arrFlights": "1,037",
+     "depFlights": "1,038",
+     "flights": "2,075"
+    },
+    {
+     "airline": "센트럼항공",
+     "airlineCode": "C6",
+     "arrFlights": "46",
+     "depFlights": "46",
+     "flights": "92"
+    },
+    {
+     "airline": "스리랑카항공",
+     "airlineCode": "UL",
+     "arrFlights": "108",
+     "depFlights": "107",
+     "flights": "215"
+    },
+    {
+     "airline": "스위스 국제항공",
+     "airlineCode": "LX",
+     "arrFlights": "100",
+     "depFlights": "100",
+     "flights": "200"
+    },
+    {
+     "airline": "스카이 앙코르 항공",
+     "airlineCode": "ZA",
+     "arrFlights": "251",
+     "depFlights": "251",
+     "flights": "502"
+    },
+    {
+     "airline": "스칸디나비아항공",
+     "airlineCode": "SK",
+     "arrFlights": "53",
+     "depFlights": "53",
+     "flights": "106"
+    },
+    {
+     "airline": "스캇항공",
+     "airlineCode": "DV",
+     "arrFlights": "62",
+     "depFlights": "62",
+     "flights": "124"
+    },
+    {
+     "airline": "스쿠트 항공",
+     "airlineCode": "TR",
+     "arrFlights": "492",
+     "depFlights": "492",
+     "flights": "984"
+    },
+    {
+     "airline": "심천항공",
+     "airlineCode": "ZH",
+     "arrFlights": "851",
+     "depFlights": "851",
+     "flights": "1,702"
+    },
+    {
+     "airline": "싱가포르항공",
+     "airlineCode": "SQ",
+     "arrFlights": "1,331",
+     "depFlights": "1,331",
+     "flights": "2,662"
+    },
+    {
+     "airline": "아메리칸항공",
+     "airlineCode": "AA",
+     "arrFlights": "364",
+     "depFlights": "364",
+     "flights": "728"
+    },
+    {
+     "airline": "아시아나항공",
+     "airlineCode": "OZ",
+     "arrFlights": "25,195",
+     "depFlights": "25,185",
+     "flights": "50,380"
+    },
+    {
+     "airline": "아에로멕시코",
+     "airlineCode": "AM",
+     "arrFlights": "336",
+     "depFlights": "336",
+     "flights": "672"
+    },
+    {
+     "airline": "알래스카 항공",
+     "airlineCode": "AS",
+     "arrFlights": "61",
+     "depFlights": "62",
+     "flights": "123"
+    },
+    {
+     "airline": "에미레이트항공",
+     "airlineCode": "EK",
+     "arrFlights": "521",
+     "depFlights": "522",
+     "flights": "1,043"
+    },
+    {
+     "airline": "에바항공",
+     "airlineCode": "BR",
+     "arrFlights": "1,208",
+     "depFlights": "1,208",
+     "flights": "2,416"
+    },
+    {
+     "airline": "에어 뉴질랜드",
+     "airlineCode": "NZ",
+     "arrFlights": "36",
+     "depFlights": "36",
+     "flights": "72"
+    },
+    {
+     "airline": "에어 아스타나",
+     "airlineCode": "KC",
+     "arrFlights": "453",
+     "depFlights": "453",
+     "flights": "906"
+    },
+    {
+     "airline": "에어 프랑스",
+     "airlineCode": "AF",
+     "arrFlights": "353",
+     "depFlights": "353",
+     "flights": "706"
+    },
+    {
+     "airline": "에어로 몽골리아",
+     "airlineCode": "M0",
+     "arrFlights": "223",
+     "depFlights": "223",
+     "flights": "446"
+    },
+    {
+     "airline": "에어로케이항공",
+     "airlineCode": "RF",
+     "arrFlights": "967",
+     "depFlights": "956",
+     "flights": "1,923"
+    },
+    {
+     "airline": "에어마카오",
+     "airlineCode": "NX",
+     "arrFlights": "685",
+     "depFlights": "685",
+     "flights": "1,370"
+    },
+    {
+     "airline": "에어부산",
+     "airlineCode": "BX",
+     "arrFlights": "3,278",
+     "depFlights": "3,279",
+     "flights": "6,557"
+    },
+    {
+     "airline": "에어서울",
+     "airlineCode": "RS",
+     "arrFlights": "4,611",
+     "depFlights": "4,610",
+     "flights": "9,221"
+    },
+    {
+     "airline": "에어아시아 버하드",
+     "airlineCode": "AK",
+     "arrFlights": "360",
+     "depFlights": "359",
+     "flights": "719"
+    },
+    {
+     "airline": "에어아시아엑스",
+     "airlineCode": "D7",
+     "arrFlights": "529",
+     "depFlights": "529",
+     "flights": "1,058"
+    },
+    {
+     "airline": "에어인디아 리미티드",
+     "airlineCode": "AI",
+     "arrFlights": "221",
+     "depFlights": "221",
+     "flights": "442"
+    },
+    {
+     "airline": "에어재팬",
+     "airlineCode": "NQ",
+     "arrFlights": "375",
+     "depFlights": "375",
+     "flights": "750"
+    },
+    {
+     "airline": "에어캐나다",
+     "airlineCode": "AC",
+     "arrFlights": "746",
+     "depFlights": "747",
+     "flights": "1,493"
+    },
+    {
+     "airline": "에어프레미아",
+     "airlineCode": "YP",
+     "arrFlights": "2,057",
+     "depFlights": "2,061",
+     "flights": "4,118"
+    },
+    {
+     "airline": "에티오피아항공",
+     "airlineCode": "ET",
+     "arrFlights": "619",
+     "depFlights": "618",
+     "flights": "1,237"
+    },
+    {
+     "airline": "에티하드 항공",
+     "airlineCode": "EY",
+     "arrFlights": "567",
+     "depFlights": "567",
+     "flights": "1,134"
+    },
+    {
+     "airline": "우즈베키스탄항공",
+     "airlineCode": "HY",
+     "arrFlights": "362",
+     "depFlights": "362",
+     "flights": "724"
+    },
+    {
+     "airline": "웨스트젯",
+     "airlineCode": "WS",
+     "arrFlights": "161",
+     "depFlights": "161",
+     "flights": "322"
+    },
+    {
+     "airline": "유나이티드항공",
+     "airlineCode": "UA",
+     "arrFlights": "722",
+     "depFlights": "722",
+     "flights": "1,444"
+    },
+    {
+     "airline": "이스타항공",
+     "airlineCode": "ZE",
+     "arrFlights": "6,353",
+     "depFlights": "6,354",
+     "flights": "12,707"
+    },
+    {
+     "airline": "제주항공",
+     "airlineCode": "7C",
+     "arrFlights": "18,158",
+     "depFlights": "18,159",
+     "flights": "36,317"
+    },
+    {
+     "airline": "젯스타",
+     "airlineCode": "JQ",
+     "arrFlights": "448",
+     "depFlights": "447",
+     "flights": "895"
+    },
+    {
+     "airline": "중국국제항공",
+     "airlineCode": "CA",
+     "arrFlights": "3,223",
+     "depFlights": "3,223",
+     "flights": "6,446"
+    },
+    {
+     "airline": "중국남방항공",
+     "airlineCode": "CZ",
+     "arrFlights": "5,477",
+     "depFlights": "5,477",
+     "flights": "10,954"
+    },
+    {
+     "airline": "중국동방항공",
+     "airlineCode": "MU",
+     "arrFlights": "6,862",
+     "depFlights": "6,861",
+     "flights": "13,723"
+    },
+    {
+     "airline": "중국연합항공",
+     "airlineCode": "KN",
+     "arrFlights": "27",
+     "depFlights": "27",
+     "flights": "54"
+    },
+    {
+     "airline": "중국해남항공",
+     "airlineCode": "HU",
+     "arrFlights": "197",
+     "depFlights": "197",
+     "flights": "394"
+    },
+    {
+     "airline": "중화항공",
+     "airlineCode": "CI",
+     "arrFlights": "1,107",
+     "depFlights": "1,105",
+     "flights": "2,212"
+    },
+    {
+     "airline": "진에어",
+     "airlineCode": "LJ",
+     "arrFlights": "12,008",
+     "depFlights": "12,002",
+     "flights": "24,010"
+    },
+    {
+     "airline": "집에어",
+     "airlineCode": "ZG",
+     "arrFlights": "366",
+     "depFlights": "366",
+     "flights": "732"
+    },
+    {
+     "airline": "천진항공",
+     "airlineCode": "GS",
+     "arrFlights": "203",
+     "depFlights": "203",
+     "flights": "406"
+    },
+    {
+     "airline": "청도항공",
+     "airlineCode": "QW",
+     "arrFlights": "353",
+     "depFlights": "353",
+     "flights": "706"
+    },
+    {
+     "airline": "춘추항공",
+     "airlineCode": "9C",
+     "arrFlights": "459",
+     "depFlights": "459",
+     "flights": "918"
+    },
+    {
+     "airline": "카놋샤크",
+     "airlineCode": "HH",
+     "arrFlights": "134",
+     "depFlights": "134",
+     "flights": "268"
+    },
+    {
+     "airline": "카타르항공",
+     "airlineCode": "QR",
+     "arrFlights": "413",
+     "depFlights": "412",
+     "flights": "825"
+    },
+    {
+     "airline": "캐세이퍼시픽항공",
+     "airlineCode": "CX",
+     "arrFlights": "1,411",
+     "depFlights": "1,411",
+     "flights": "2,822"
+    },
+    {
+     "airline": "콴타스항공",
+     "airlineCode": "QF",
+     "arrFlights": "65",
+     "depFlights": "65",
+     "flights": "130"
+    },
+    {
+     "airline": "타이거에어 타이완",
+     "airlineCode": "IT",
+     "arrFlights": "364",
+     "depFlights": "364",
+     "flights": "728"
+    },
+    {
+     "airline": "타이비엣젯항공",
+     "airlineCode": "VZ",
+     "arrFlights": "92",
+     "depFlights": "92",
+     "flights": "184"
+    },
+    {
+     "airline": "타이에어아시아엑스",
+     "airlineCode": "XJ",
+     "arrFlights": "336",
+     "depFlights": "336",
+     "flights": "672"
+    },
+    {
+     "airline": "타이항공",
+     "airlineCode": "TG",
+     "arrFlights": "1,034",
+     "depFlights": "1,035",
+     "flights": "2,069"
+    },
+    {
+     "airline": "터키항공",
+     "airlineCode": "TK",
+     "arrFlights": "574",
+     "depFlights": "574",
+     "flights": "1,148"
+    },
+    {
+     "airline": "투르크메니스탄",
+     "airlineCode": "T5",
+     "arrFlights": "25",
+     "depFlights": "25",
+     "flights": "50"
+    },
+    {
+     "airline": "트리니티항공",
+     "airlineCode": "TW",
+     "arrFlights": "12,015",
+     "depFlights": "12,014",
+     "flights": "24,029"
+    },
+    {
+     "airline": "파라타항공",
+     "airlineCode": "WE",
+     "arrFlights": "178",
+     "depFlights": "181",
+     "flights": "359"
+    },
+    {
+     "airline": "폴란드항공",
+     "airlineCode": "LO",
+     "arrFlights": "351",
+     "depFlights": "351",
+     "flights": "702"
+    },
+    {
+     "airline": "피치항공",
+     "airlineCode": "MM",
+     "arrFlights": "1,840",
+     "depFlights": "1,841",
+     "flights": "3,681"
+    },
+    {
+     "airline": "핀에어",
+     "airlineCode": "AY",
+     "arrFlights": "351",
+     "depFlights": "351",
+     "flights": "702"
+    },
+    {
+     "airline": "필리핀에어아시아",
+     "airlineCode": "Z2",
+     "arrFlights": "388",
+     "depFlights": "388",
+     "flights": "776"
+    },
+    {
+     "airline": "필리핀항공",
+     "airlineCode": "PR",
+     "arrFlights": "1,136",
+     "depFlights": "1,135",
+     "flights": "2,271"
+    },
+    {
+     "airline": "하와이안 항공",
+     "airlineCode": "HA",
+     "arrFlights": "249",
+     "depFlights": "248",
+     "flights": "497"
+    },
+    {
+     "airline": "홍콩익스프레스",
+     "airlineCode": "UO",
+     "arrFlights": "1,269",
+     "depFlights": "1,269",
+     "flights": "2,538"
+    },
+    {
+     "airline": "홍콩항공",
+     "airlineCode": "HX",
+     "arrFlights": "490",
+     "depFlights": "490",
+     "flights": "980"
+    }
+   ]
+  }
+ }
+}

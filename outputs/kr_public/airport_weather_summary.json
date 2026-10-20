@@ -1,0 +1,22 @@
+{
+  "year": 2025,
+  "sample": "매월 15일 02·08·14·20시 각 1시간(분 자료), 공항 7곳 합산",
+  "stations": [
+    92,
+    110,
+    113,
+    151,
+    163,
+    167,
+    182
+  ],
+  "temp_max_c": 35.5,
+  "temp_min_c": -5.8,
+  "temp_mean_c": 14.8,
+  "hum_mean_pct": 72.9,
+  "share_hum_ge80": 0.455,
+  "share_temp_ge30": 0.02,
+  "summer_hum_mean_pct(6~8월)": 84.4,
+  "summer_temp_mean_c(6~8월)": 24.9,
+  "winter_temp_mean_c(12~2월)": 2.6
+}
