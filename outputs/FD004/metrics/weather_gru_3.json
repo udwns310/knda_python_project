@@ -1,0 +1,15 @@
+{
+  "val_FP_cycles": 189,
+  "val_FN_cycles": 123,
+  "val_engines_with_false_alarm": 23,
+  "val_MAE": 8.23,
+  "test_FN_at_40": 3,
+  "test_FP_at_40": 4,
+  "test_FN_at_42": 1,
+  "test_FP_at_42": 5,
+  "test_FN_at_46": 0,
+  "test_FP_at_46": 7,
+  "test_MAE": 17.41,
+  "weather_seed": 3,
+  "seconds": 1283
+}

@@ -30,3 +30,12 @@ DATA_GO_KR_KEY='발급받은_인증키' python scripts/23_cycles_per_day.py --fe
 KMA_AUTHKEY='발급받은_키' python scripts/27_kr_airport_weather.py
 ```
 
+### 하루 4개 시각 전체 수집과 날씨 점수 시험
+
+`scripts/28_fetch_weather_year.py`는 2025년 매일 02·08·14·20시(각 1시간 평균)의 공항 7곳 기온·습도를 받아 `outputs/kr_public/airport_weather_2025_slots.csv`로 저장합니다(1,460번 호출, 끊겨도 이어서 받음, 지점 이름 대응은 확인하지 않아 익명).
+`scripts/29_weather_score_gru.py`는 이 날씨를 점수 4개로 만들어 GRU 입력에 추가한 시험입니다. C-MAPSS에는 비행 날짜·공항 기록이 없어 엔진마다 시작 날짜와 공항을 무작위로 배정한 가정 시험이므로 개선이 나와도 근거로 볼 수 없습니다.
+
+```bash
+KMA_AUTHKEY='발급받은_키' python scripts/28_fetch_weather_year.py
+python scripts/29_weather_score_gru.py
+```

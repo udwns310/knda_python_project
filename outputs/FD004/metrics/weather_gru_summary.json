@@ -1,0 +1,50 @@
+{
+  "assumption": "엔진마다 시작 날짜·기준 공항을 무작위 배정, 하루 5회, 실제 AMOS 기온·습도 부착",
+  "runs": [
+    {
+      "val_FP_cycles": 246,
+      "val_FN_cycles": 84,
+      "val_engines_with_false_alarm": 30,
+      "val_MAE": 7.95,
+      "test_FN_at_40": 2,
+      "test_FP_at_40": 6,
+      "test_FN_at_42": 1,
+      "test_FP_at_42": 6,
+      "test_FN_at_46": 0,
+      "test_FP_at_46": 11,
+      "test_MAE": 16.96,
+      "weather_seed": 1,
+      "seconds": 841
+    },
+    {
+      "val_FP_cycles": 152,
+      "val_FN_cycles": 115,
+      "val_engines_with_false_alarm": 23,
+      "val_MAE": 8.14,
+      "test_FN_at_40": 3,
+      "test_FP_at_40": 2,
+      "test_FN_at_42": 2,
+      "test_FP_at_42": 4,
+      "test_FN_at_46": 0,
+      "test_FP_at_46": 6,
+      "test_MAE": 17.07,
+      "weather_seed": 2,
+      "seconds": 1149
+    },
+    {
+      "val_FP_cycles": 189,
+      "val_FN_cycles": 123,
+      "val_engines_with_false_alarm": 23,
+      "val_MAE": 8.23,
+      "test_FN_at_40": 3,
+      "test_FP_at_40": 4,
+      "test_FN_at_42": 1,
+      "test_FP_at_42": 5,
+      "test_FN_at_46": 0,
+      "test_FP_at_46": 7,
+      "test_MAE": 17.41,
+      "weather_seed": 3,
+      "seconds": 1283
+    }
+  ]
+}
